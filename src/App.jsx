@@ -30,6 +30,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import ParticleBackground from './ParticleBackground';
 
 const API_URL = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
@@ -361,22 +362,32 @@ const App = () => {
   };
 
   const supportedBanks = [
-    { id: 'sbi', name: 'SBI Bank', color: '#005596' },
-    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F' },
-    { id: 'canara', name: 'Canara Bank', color: '#005EB8' },
-    { id: 'idfc', name: 'IDFC First Bank', color: '#902640' },
-    { id: 'bob', name: 'Bank of Baroda', color: '#F15A22' }
+    { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://www.freepnglogos.com/uploads/sbi-logo-png/sbi-logo-state-bank-india-group-vector-eps-0.png' },
+    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: 'https://1000logos.net/wp-content/uploads/2021/06/HDFC-Bank-logo.jpg' },
+    { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
+    { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
+    { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
+    { id: 'union', name: 'Union Bank', color: '#D52B1E', logo: 'https://www.bankingfinance.in/wp-content/uploads/2017/12/Union-Bank-of-India.jpg' },
+    { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logo.clearbit.com/bankofindia.co.in' },
+    { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://logo.clearbit.com/indianbank.in' },
+    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: 'https://logo.clearbit.com/centralbankofindia.co.in' },
+    { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://logo.clearbit.com/iob.in' },
+    { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://logo.clearbit.com/ucobank.com' },
+    { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://logo.clearbit.com/bankofmaharashtra.in' },
+    { id: 'psb', name: 'Punjab & Sind', color: '#00703C', logo: 'https://logo.clearbit.com/punjabandsindbank.co.in' }
   ];
 
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)', backgroundImage: 'radial-gradient(circle at center, rgba(0, 240, 255, 0.05) 0%, transparent 50%)' }}>
-        <motion.div 
+      <>
+        <ParticleBackground />
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+          <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
           className="glass-panel" 
-          style={{ width: '100%', maxWidth: '440px', padding: '40px' }}
+          style={{ width: '100%', maxWidth: '520px', padding: '40px' }}
         >
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <ShieldAlert color="var(--accent-cyan)" size={48} style={{ margin: '0 auto 16px' }} />
@@ -387,34 +398,50 @@ const App = () => {
           {!selectedBank ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '14px', marginBottom: '8px', textAlign: 'center' }}>Select your Financial Institution</p>
-              {supportedBanks.map(bank => (
-                <button 
-                  key={bank.id}
-                  onClick={() => setSelectedBank(bank)}
-                  style={{ 
-                    padding: '14px', 
-                    background: 'rgba(255,255,255,0.03)', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    borderRadius: '8px',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = bank.color }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
-                >
-                  <span style={{ fontWeight: 500 }}>{bank.name}</span>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: bank.color }}></div>
-                </button>
-              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', maxHeight: '400px', overflowY: 'auto', paddingRight: '4px' }}>
+                {supportedBanks.map(bank => (
+                  <button 
+                    key={bank.id}
+                    onClick={() => setSelectedBank(bank)}
+                    style={{ 
+                      padding: '12px 8px', 
+                      background: 'rgba(255,255,255,0.03)', 
+                      border: '1px solid rgba(255,255,255,0.1)', 
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = bank.color }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                  >
+                    <div style={{ width: '76px', height: '76px', background: '#fff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: `2px solid rgba(255,255,255,0.1)` }}>
+                      <img 
+                        src={bank.logo} 
+                        alt={bank.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }} 
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                      />
+                      <span style={{ display: 'none', color: '#333', fontWeight: 'bold', fontSize: '20px', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{bank.name.substring(0,2)}</span>
+                    </div>
+                    <span style={{ fontWeight: 500, fontSize: '11px', textAlign: 'center', color: 'white' }}>{bank.name}</span>
+                  </button>
+                ))}
+              </div>
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '14px', fontWeight: '500', color: selectedBank.color }}>{selectedBank.name} Portal</span>
+                <span style={{ fontSize: '14px', fontWeight: '500', color: selectedBank.color, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ background: '#fff', borderRadius: '4px', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '20px', width: '20px' }}>
+                    <img src={selectedBank.logo} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                  </div>
+                  {selectedBank.name} Portal
+                </span>
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedBank(null)}>Change Bank</span>
               </div>
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -439,20 +466,27 @@ const App = () => {
           </div>
         </motion.div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="app-container">
-      {/* Sidebar */}
+    <>
+      <ParticleBackground />
+      <div className="app-container">
+        {/* Sidebar */}
       <div className="sidebar">
         <div className="logo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginBottom: '30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <ShieldAlert color="var(--accent-cyan)" size={24} />
             <span className="text-gradient">CFI Network</span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '36px' }}>
-            Connected to <strong>{selectedBank.name}</strong>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '36px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Connected to 
+            <div style={{ background: '#fff', borderRadius: '4px', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '20px', width: '20px' }}>
+              <img src={selectedBank.logo} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+            </div>
+            <strong>{selectedBank.name}</strong>
           </div>
         </div>
         
@@ -534,7 +568,7 @@ const App = () => {
                 </div>
                 <div className="stat-card-change change-positive">Streaming</div>
               </div>
-              <div className="glass-panel stat-card">
+              <div className="glass-panel stat-card" data-suspicious="true">
                 <div className="stat-card-title">Ongoing Anomalies (Flagged)</div>
                 <div className="stat-card-value">
                   {currentTelemetry.flagged.toLocaleString()}
@@ -592,7 +626,7 @@ const App = () => {
               </div>
 
               {/* Alerts List */}
-              <div className="glass-panel side-panel">
+              <div className="glass-panel side-panel" data-suspicious="true">
                 <div className="panel-header">
                   <div className="panel-title">
                     <AlertTriangle size={18} color="var(--warning)" />
@@ -753,7 +787,7 @@ const App = () => {
               className="dashboard-grid"
             >
               {/* Case Management Header */}
-              <div className="glass-panel" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="glass-panel" data-suspicious="true" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Active Investigation: TXN-8942 (CryptoBridge Ltd)</h2>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Assigned Analyst: Auto-Discovery • Status: PENDING REVIEW</p>
@@ -1006,6 +1040,7 @@ const App = () => {
         </AnimatePresence>
       </div>
     </div>
+    </>
   );
 };
 
