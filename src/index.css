@@ -328,6 +328,13 @@ body {
   border: 1px solid rgba(52, 199, 89, 0.2);
 }
 
+.badge-success {
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
 /* Network Graph specifics */
 .network-node {
   transition: all 0.3s;
