@@ -41,6 +41,21 @@ import EntityInvestigation from './EntityInvestigation';
 const API_URL = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
 
+export const supportedBanks = [
+  { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
+  { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: 'https://logodix.com/logo/840225.jpg' },
+  { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
+  { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
+  { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
+  { id: 'union', name: 'Union Bank', color: '#D52B1E', logo: 'https://www.bankingfinance.in/wp-content/uploads/2017/12/Union-Bank-of-India.jpg' },
+  { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logos-world.net/wp-content/uploads/2020/01/Bank-of-India-Logo-before-2011.png' },
+  { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://companieslogo.com/img/orig/INDIANB.NS_BIG-f675f730.png?t=1615846835' },
+  { id: 'central', name: 'Central Bank', color: '#005EB8', logo: '/central_bank_logo.png' },
+  { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://companieslogo.com/img/orig/IOB.NS_BIG-09a26177.png?t=1613454098' },
+  { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://www.thebusinessquiz.com/wp-content/uploads/2014/11/UCO-Bank-Logo.jpg' },
+  { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' }
+];
+
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedBank, setSelectedBank] = useState(null);
@@ -200,7 +215,7 @@ const App = () => {
     blocked: 910
   });
 
-  // Fetch initial data
+  // Fetch initial data & preload logos
   useEffect(() => {
     // Fetch Anomalies
     fetch(`${API_URL}/anomalies`)
@@ -213,6 +228,12 @@ const App = () => {
       .then(res => res.json())
       .then(data => setCreditProfile(data))
       .catch(err => console.error("Error fetching credit profile:", err));
+      
+    // Preload logos
+    supportedBanks.forEach(bank => {
+      const img = new Image();
+      img.src = bank.logo;
+    });
   }, []);
 
   // Set up WebSocket
@@ -537,22 +558,6 @@ const App = () => {
     }
   };
 
-  const supportedBanks = [
-    { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
-    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: '/hdfc_bank_logo.png?v=2' },
-    { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
-    { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
-    { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
-    { id: 'union', name: 'Union Bank', color: '#D52B1E', logo: 'https://www.bankingfinance.in/wp-content/uploads/2017/12/Union-Bank-of-India.jpg' },
-    { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logos-world.net/wp-content/uploads/2020/01/Bank-of-India-Logo-before-2011.png' },
-    { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://companieslogo.com/img/orig/INDIANB.NS_BIG-f675f730.png?t=1615846835' },
-    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: '/central_bank_logo.png' },
-    { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://companieslogo.com/img/orig/IOB.NS_BIG-09a26177.png?t=1613454098' },
-    { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://www.thebusinessquiz.com/wp-content/uploads/2014/11/UCO-Bank-Logo.jpg' },
-    { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' },
-    { id: 'psb', name: 'Punjab & Sind', color: '#00703C', logo: 'https://logo.clearbit.com/punjabandsindbank.co.in' }
-  ];
-
   if (!isAuthenticated) {
     return (
       <>
@@ -742,9 +747,48 @@ const App = () => {
             <button className="btn" style={{ background: 'transparent', padding: '8px' }}>
               <Bell size={20} />
             </button>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              AD
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={selectedBank?.id || 'default'}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  borderRadius: '50%', 
+                  background: selectedBank ? '#fff' : 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontWeight: 'bold',
+                  overflow: 'hidden',
+                  border: selectedBank ? `1px solid ${selectedBank.color}` : 'none',
+                  boxShadow: selectedBank ? `0 0 12px ${selectedBank.color}60` : 'none',
+                  flexShrink: 0
+                }}
+              >
+                {selectedBank ? (
+                  <>
+                    <img 
+                      src={selectedBank.logo} 
+                      alt={selectedBank.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
+                      onError={(e) => { 
+                        e.target.style.display = 'none'; 
+                        e.target.nextSibling.style.display = 'flex'; 
+                      }} 
+                    />
+                    <span style={{ display: 'none', color: selectedBank.color, fontSize: '13px' }}>
+                      {selectedBank.name.substring(0, 3).toUpperCase()}
+                    </span>
+                  </>
+                ) : (
+                  "AD"
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
@@ -1302,11 +1346,11 @@ const App = () => {
               style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px' }}
             >
               <div className="glass-panel" style={{ width: '100%', maxWidth: '680px', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0', border: '1px solid rgba(0,240,255,0.2)', boxShadow: '0 0 40px rgba(0,0,0,0.4), 0 0 20px rgba(0,240,255,0.1)' }}>
-                <div style={{ width: '100%', height: '360px', overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(13, 17, 23, 1) 100%)', zIndex: 1 }}></div>
-                  <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ width: '100%', height: 'clamp(240px, 40vh, 360px)', overflow: 'hidden', position: 'relative', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(13, 17, 23, 0.7) 75%, rgba(13, 17, 23, 1) 100%)', zIndex: 1 }}></div>
+                  <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', transition: 'transform 0.5s ease' }} />
                 </div>
-                <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-40px', background: 'rgba(13, 17, 23, 1)' }}>
+                <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-50px', background: 'transparent' }}>
                   <h2 className="text-gradient" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 16px 0', letterSpacing: '2px', textShadow: '0 4px 20px rgba(0,240,255,0.2)' }}>FINANCIAL FRAUD</h2>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '36px', maxWidth: '420px', fontSize: '15px', lineHeight: '1.6' }}>If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.</p>
                   
