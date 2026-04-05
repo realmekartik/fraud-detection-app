@@ -38,6 +38,31 @@ import 'jspdf-autotable';
 import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
 
+const GovHeader = () => (
+  <div style={{
+    height: '48px',
+    background: '#ffffff',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 24px',
+    borderBottom: '2px solid #e2e8f0',
+    position: 'relative',
+    zIndex: 9999
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <img src="/state_emblem.png" alt="State Emblem of India" style={{ height: '36px', objectFit: 'contain' }} />
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <span style={{ fontSize: '14px', fontWeight: '800', color: '#1a202c', letterSpacing: '0.5px', lineHeight: '1.2' }}>GOVERNMENT OF INDIA</span>
+        <span style={{ fontSize: '10px', fontWeight: '700', color: '#4a5568', letterSpacing: '0.2px' }}>MINISTRY OF HOME AFFAIRS</span>
+      </div>
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <img src="/amrit_mahotsav.png" alt="Azadi Ka Amrit Mahotsav" style={{ height: '40px', objectFit: 'contain' }} />
+    </div>
+  </div>
+);
+
 const API_URL = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
 
@@ -539,7 +564,7 @@ const App = () => {
 
   const supportedBanks = [
     { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
-    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: '/hdfc_bank_logo.png?v=2' },
+    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: '/hdfc_bank_logo.png?v=3' },
     { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
     { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
     { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
@@ -556,8 +581,9 @@ const App = () => {
   if (!isAuthenticated) {
     return (
       <>
+        <GovHeader />
         <ParticleBackground />
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+        <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
           <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -648,6 +674,7 @@ const App = () => {
 
   return (
     <>
+      <GovHeader />
       <ParticleBackground />
       <div className="app-container">
         {/* Sidebar */}
@@ -725,11 +752,14 @@ const App = () => {
         <div className="header">
           <div className="header-title">
             <h1 className="text-gradient">
-              {activeTab === 'fraud' ? 'Real-Time Network Intelligence' : 'Explainable AI Assessment'}
+              {activeTab === 'fraud' ? 'Real-Time Network Intelligence' : 
+               activeTab === 'file_complaint' ? 'File a Cyber Complaint' : 'Explainable AI Assessment'}
             </h1>
             <p>
               {activeTab === 'fraud' 
                 ? 'Graph-based anomaly detection across multi-layer transaction networks. Live Telemetry enabled.'
+                : activeTab === 'file_complaint'
+                ? 'Official gateway to register a federal cybercrime incident report immediately.'
                 : 'Interpretable risk scoring framework combining behavioral and financial features.'}
             </p>
           </div>
@@ -1307,6 +1337,7 @@ const App = () => {
                   <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-40px', background: 'rgba(13, 17, 23, 1)' }}>
+                  <img src="/state_emblem.png" alt="National Emblem" style={{ height: '70px', marginBottom: '16px', filter: 'invert(1) brightness(2)' }} />
                   <h2 className="text-gradient" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 16px 0', letterSpacing: '2px', textShadow: '0 4px 20px rgba(0,240,255,0.2)' }}>FINANCIAL FRAUD</h2>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '36px', maxWidth: '420px', fontSize: '15px', lineHeight: '1.6' }}>If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.</p>
                   
