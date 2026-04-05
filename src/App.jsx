@@ -14,7 +14,9 @@ import {
   ScanFace,
   CheckCircle,
   X,
-  Lock
+  Lock,
+  AlertOctagon,
+  ExternalLink
 } from 'lucide-react';
 import { 
   AreaChart,
@@ -536,19 +538,19 @@ const App = () => {
   };
 
   const supportedBanks = [
-    { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://www.freepnglogos.com/uploads/sbi-logo-png/sbi-logo-state-bank-india-group-vector-eps-0.png' },
+    { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
     { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: 'https://1000logos.net/wp-content/uploads/2021/06/HDFC-Bank-logo.jpg' },
     { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
     { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
     { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
     { id: 'union', name: 'Union Bank', color: '#D52B1E', logo: 'https://www.bankingfinance.in/wp-content/uploads/2017/12/Union-Bank-of-India.jpg' },
-    { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logo.clearbit.com/bankofindia.co.in' },
-    { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://logo.clearbit.com/indianbank.in' },
-    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: 'https://logo.clearbit.com/centralbankofindia.co.in' },
-    { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://logo.clearbit.com/iob.in' },
-    { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://logo.clearbit.com/ucobank.com' },
-    { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://logo.clearbit.com/bankofmaharashtra.in' },
-    { id: 'psb', name: 'Punjab & Sind', color: '#00703C', logo: 'https://logo.clearbit.com/punjabandsindbank.co.in' }
+    { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logos-world.net/wp-content/uploads/2020/01/Bank-of-India-Logo-before-2011.png' },
+    { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://companieslogo.com/img/orig/INDIANB.NS_BIG-f675f730.png?t=1615846835' },
+    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: 'https://assets.stickpng.com/images/627cc6ac1b2e263b45696a95.png' },
+    { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://companieslogo.com/img/orig/IOB.NS_BIG-09a26177.png?t=1613454098' },
+    { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://www.thebusinessquiz.com/wp-content/uploads/2014/11/UCO-Bank-Logo.jpg' },
+    { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://assets.stickpng.com/images/627cc5c91b2e263b45696a8e.png' },
+    { id: 'psb', name: 'Punjab & Sind', color: '#00703C', logo: 'https://assets.stickpng.com/images/627cce601b2e263b45696abb.png' }
   ];
 
   if (!isAuthenticated) {
@@ -610,8 +612,8 @@ const App = () => {
           ) : (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '14px', fontWeight: '500', color: selectedBank.color, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ background: '#fff', borderRadius: '4px', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '20px', width: '20px' }}>
+                <span style={{ fontSize: '16px', fontWeight: '500', color: selectedBank.color, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ background: '#fff', borderRadius: '6px', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '36px', width: '36px' }}>
                     <img src={selectedBank.logo} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                   </div>
                   {selectedBank.name} Portal
@@ -656,12 +658,12 @@ const App = () => {
             <span className="text-gradient">CFI Network</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '36px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               Connected to 
-              <div style={{ background: '#fff', borderRadius: '4px', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '20px', width: '20px' }}>
+              <div style={{ background: '#fff', borderRadius: '6px', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '40px', width: '40px' }}>
                 <img src={selectedBank.logo} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
               </div>
-              <strong>{selectedBank.name}</strong>
+              <strong style={{ fontSize: '16px', color: 'white' }}>{selectedBank.name}</strong>
             </div>
             {currentUser && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '4px', width: '100%', maxWidth: '180px' }}>
@@ -703,6 +705,10 @@ const App = () => {
           <div className={`nav-item ${activeTab === 'compliance' ? 'active' : ''}`} onClick={() => setActiveTab('compliance')}>
             <FileKey size={20} />
             Compliance Reports
+          </div>
+          <div className={`nav-item ${activeTab === 'file_complaint' ? 'active' : ''}`} onClick={() => setActiveTab('file_complaint')}>
+            <AlertOctagon size={20} />
+            File a Complaint
           </div>
         </div>
 
@@ -1283,6 +1289,32 @@ const App = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total Records (Encrypted):</span> <span style={{ fontWeight: '600' }}>1.4 Million</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Retention Cycle:</span> <span style={{ fontWeight: '600' }}>7 Years</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Next Auto-Purge:</span> <span style={{ fontWeight: '600', color: 'var(--warning)' }}>Oct 12, 2026</span></div>
+                </div>
+              </div>
+            </motion.div>
+          ) : activeTab === 'file_complaint' ? (
+            <motion.div 
+              key="file_complaint"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ duration: 0.4 }}
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px' }}
+            >
+              <div className="glass-panel" style={{ width: '100%', maxWidth: '680px', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0', border: '1px solid rgba(0,240,255,0.2)', boxShadow: '0 0 40px rgba(0,0,0,0.4), 0 0 20px rgba(0,240,255,0.1)' }}>
+                <div style={{ width: '100%', height: '360px', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(13, 17, 23, 1) 100%)', zIndex: 1 }}></div>
+                  <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-40px', background: 'rgba(13, 17, 23, 1)' }}>
+                  <h2 className="text-gradient" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 16px 0', letterSpacing: '2px', textShadow: '0 4px 20px rgba(0,240,255,0.2)' }}>FINANCIAL FRAUD</h2>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '36px', maxWidth: '420px', fontSize: '15px', lineHeight: '1.6' }}>If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.</p>
+                  
+                  <a href="https://cybercrime.gov.in/Webform/Accept.aspx" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', width: '100%', maxWidth: '320px' }}>
+                    <button style={{ width: '100%', background: 'linear-gradient(135deg, #ff3b30, #ff2b5e)', color: '#ffffff', border: '1px solid rgba(255,59,48,0.5)', borderRadius: '12px', padding: '16px', fontSize: '18px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 8px 24px rgba(255,59,48,0.3)', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(255,59,48,0.5)' }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,59,48,0.3)' }}>
+                      <AlertTriangle size={20} /> Register Complaint
+                    </button>
+                  </a>
                 </div>
               </div>
             </motion.div>
