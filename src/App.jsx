@@ -58,6 +58,31 @@ export const supportedBanks = [
   { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' }
 ];
 
+const generateHighRiskEntities = (bankId) => {
+  if (bankId === 'hdfc') {
+    return [
+      { id: 'TXN-8934', entity: 'Arjun Mehta', type: 'Individual', risk: 98, activity: 'Layering Activity', avatar: 'AM' },
+      { id: 'TXN-8112', entity: 'Shree Balaji Traders', type: 'Business', risk: 92, activity: 'Structuring', avatar: 'SB' },
+      { id: 'TXN-7944', entity: 'Horizon Exports Pvt', type: 'Corporate', risk: 85, activity: 'Velocity Anomaly', avatar: 'HE' },
+      { id: 'TXN-7231', entity: 'Manoj Tiwari', type: 'Individual', risk: 71, activity: 'Unusual Geo Activity', avatar: 'MT' }
+    ];
+  } else if (bankId === 'icici') {
+    return [
+      { id: 'TXN-9021', entity: 'Priya Sharma', type: 'Individual', risk: 96, activity: 'Layering Activity', avatar: 'PS' },
+      { id: 'TXN-8845', entity: 'Global Tech Solutions', type: 'Shell Company', risk: 91, activity: 'Rapid Funneling', avatar: 'GT' },
+      { id: 'TXN-8761', entity: 'Rahul Das', type: 'Individual', risk: 84, activity: 'Velocity Anomaly', avatar: 'RD' },
+      { id: 'TXN-8123', entity: 'Apex Logistics', type: 'Business', risk: 75, activity: 'Structuring', avatar: 'AL' }
+    ];
+  } else {
+    return [
+      { id: 'TXN-9912', entity: 'Rajesh Kumar', type: 'Individual', risk: 98, activity: 'Layering Activity', avatar: 'RK' },
+      { id: 'TXN-9421', entity: 'Neha Gupta', type: 'Individual', risk: 92, activity: 'Structuring', avatar: 'NG' },
+      { id: 'TXN-9102', entity: 'Venkatesh Enterprises', type: 'Business', risk: 85, activity: 'Velocity Anomaly', avatar: 'VE' },
+      { id: 'TXN-8654', entity: 'Aman Verma', type: 'Individual', risk: 71, activity: 'Unusual Geo Activity', avatar: 'AV' }
+    ];
+  }
+};
+
 const hiTranslations = {
   "Central Fraud Intelligence": "केंद्रीय धोखाधड़ी खुफिया",
   "Inter-Banking Security Authentication Portal": "अंतर-बैंकिंग सुरक्षा प्रमाणीकरण पोर्टल",
@@ -300,26 +325,74 @@ const App = () => {
     blocked: 910
   });
 
+  const loadCreditProfile = (entity, navigate = false) => {
+    let baseScore, recommendation, tier, limit;
+    if (entity.risk > 90) {
+      baseScore = Math.floor(Math.random() * 150) + 500;
+      recommendation = "Reject Application / High Risk";
+      tier = "Tier 4 (Uninsurable)";
+      limit = Math.floor(Math.random() * 500);
+    } else if (entity.risk > 80) {
+      baseScore = Math.floor(Math.random() * 100) + 650;
+      recommendation = "Manual Review / Requires Guarantor";
+      tier = "Tier 3 (Subprime)";
+      limit = Math.floor(Math.random() * 5000) + 1000;
+    } else {
+      baseScore = Math.floor(Math.random() * 100) + 750;
+      recommendation = "Auto-Approve";
+      tier = "Tier 1 (Prime)";
+      limit = Math.floor(Math.random() * 20000) + 10000;
+    }
+
+    const isLayering = entity.activity === 'Layering Activity';
+    const isStructuring = entity.activity === 'Structuring';
+    const isVelocity = entity.activity === 'Velocity Anomaly';
+
+    setCreditProfile({
+      id: entity.id,
+      name: entity.entity,
+      avatar: entity.avatar,
+      riskLevel: entity.risk,
+      score: baseScore,
+      recommendation,
+      limit,
+      tier,
+      factors: [
+        { factor: 'History', score: baseScore > 700 ? 80 : 40, avg: 65, fullMark: 100 },
+        { factor: 'Velocity', score: isVelocity ? 15 : (baseScore > 700 ? 85 : 50), avg: 55, fullMark: 100 },
+        { factor: 'Layering', score: isLayering ? 10 : (baseScore > 700 ? 95 : 60), avg: 70, fullMark: 100 },
+        { factor: 'Structuring', score: isStructuring ? 20 : (baseScore > 700 ? 90 : 55), avg: 60, fullMark: 100 },
+        { factor: 'Geo Anomaly', score: entity.activity === 'Unusual Geo Activity' ? 10 : 80, avg: 85, fullMark: 100 },
+        { factor: 'Stability', score: Math.floor(baseScore / 10), avg: 50, fullMark: 100 }
+      ],
+      impacts: [
+        { label: 'Layering Pattern', value: isLayering ? 'High Negative Impact (-45)' : 'No Impact', percent: isLayering ? '90%' : '10%', color: isLayering ? 'var(--danger)' : 'var(--success)' },
+        { label: 'Structuring Flags', value: isStructuring ? 'High Negative Impact (-35)' : 'No Impact', percent: isStructuring ? '85%' : '15%', color: isStructuring ? 'var(--warning)' : 'var(--success)' },
+        { label: 'Velocity Triggers', value: isVelocity ? 'Moderate Negative (-25)' : 'Normal Flow', percent: isVelocity ? '60%' : '20%', color: isVelocity ? 'var(--warning)' : 'var(--success)' }
+      ]
+    });
+
+    if (navigate) {
+      setActiveTab('credit');
+    }
+  };
+
   // Fetch initial data & preload logos
   useEffect(() => {
-    // Fetch Anomalies
-    fetch(`${API_URL}/anomalies`)
-      .then(res => res.json())
-      .then(data => setNetworkAnomalies(data))
-      .catch(err => console.error("Error fetching anomalies:", err));
+    // Generate dynamic anomalies locally instead of backend mock
+    const freshAnomalies = generateHighRiskEntities(selectedBank ? selectedBank.id : 'default');
+    setNetworkAnomalies(freshAnomalies);
 
-    // Fetch Credit Profile (Mocking an ID)
-    fetch(`${API_URL}/credit/CUST-88219`)
-      .then(res => res.json())
-      .then(data => setCreditProfile(data))
-      .catch(err => console.error("Error fetching credit profile:", err));
+    if (freshAnomalies.length > 0) {
+      loadCreditProfile(freshAnomalies[0], false);
+    }
 
     // Preload logos
     supportedBanks.forEach(bank => {
       const img = new Image();
       img.src = bank.logo;
     });
-  }, []);
+  }, [selectedBank]);
 
   // Set up WebSocket
   useEffect(() => {
@@ -990,17 +1063,17 @@ const App = () => {
                   </div>
                   <div className="entity-list">
                     {networkAnomalies.length > 0 ? networkAnomalies.map((entity, i) => (
-                      <div key={i} className="entity-item" style={{ cursor: 'pointer' }} onClick={() => {
-                        setActiveTab('credit');
-                        setCreditProfile(null); // Show loading state
-                        fetch(`${API_URL}/credit/${entity.id}`)
-                          .then(res => res.json())
-                          .then(data => setCreditProfile(data))
-                          .catch(err => console.error("Error fetching credit profile:", err));
+                      <div key={i} className="entity-item" onClick={() => loadCreditProfile(entity, true)} style={{ 
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: entity.risk > 90 ? 'rgba(255, 59, 48, 0.05)' : 'transparent', borderRadius: '8px', cursor: 'pointer', boxShadow: entity.risk > 90 ? '0 0 12px rgba(255, 59, 48, 0.15)' : 'none', transition: 'all 0.3s'
                       }}>
-                        <div className="entity-info">
-                          <span className="entity-name">{entity.entity}</span>
-                          <span className="entity-id">{entity.id} • {entity.type}</span>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: entity.risk > 90 ? 'rgba(255, 59, 48, 0.2)' : 'rgba(255,255,255,0.1)', border: entity.risk > 90 ? '1px solid var(--danger)' : '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: entity.risk > 90 ? '#ff5252' : '#fff', fontWeight: 'bold', fontSize: '13px', flexShrink: 0 }}>
+                          {entity.avatar}
+                        </div>
+                        <div className="entity-info" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <span className="entity-name" style={{ display: 'block', fontWeight: '600', color: entity.risk > 90 ? '#ff5252' : '#fff', marginBottom: '3px', filter: entity.risk > 90 ? 'drop-shadow(0 0 8px rgba(255,59,48,0.4))' : 'none' }}>
+                            {entity.entity} <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)', fontSize: '11px', marginLeft: '4px' }}>({entity.type})</span>
+                          </span>
+                          <span className="entity-id" style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)' }}>{entity.id} • {entity.activity}</span>
                         </div>
                         <div className="entity-score">
                           <span className={`badge ${entity.risk > 90 ? 'badge-high' : entity.risk > 80 ? 'badge-medium' : 'badge-low'}`}>
@@ -1028,46 +1101,36 @@ const App = () => {
                     {/* Profile Card */}
                     <div className="glass-panel" style={{ gridColumn: 'span 4' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold' }}>
-                          {creditProfile.name.split(' ').map(n => n[0]).join('')}
+                        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: creditProfile.riskLevel > 90 ? 'var(--danger)' : creditProfile.riskLevel > 80 ? 'var(--warning)' : 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: '#fff' }}>
+                          {creditProfile.avatar || creditProfile.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>
+                          <p style={{ color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '4px' }}>{t('Viewing Credit Profile:')}</p>
                           <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{creditProfile.name}</h2>
                           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('ID:')} {creditProfile.id}</p>
                         </div>
                       </div>
 
-                      <div style={{ padding: '20px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.1)', textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{ padding: '20px', background: creditProfile.riskLevel > 80 ? 'rgba(255, 59, 48, 0.05)' : 'rgba(0,240,255,0.05)', borderRadius: '12px', border: creditProfile.riskLevel > 80 ? '1px solid rgba(255, 59, 48, 0.1)' : '1px solid rgba(0,240,255,0.1)', textAlign: 'center', marginBottom: '24px' }}>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>{t('AI Credit Score')}</div>
-                        <div className="text-gradient" style={{ fontSize: '48px', fontWeight: '800', lineHeight: '1' }}>{creditProfile.score}</div>
-                        <div style={{ marginTop: '8px', color: 'var(--success)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                          <TrendingUp size={14} /> {t('Model Validated')}
+                        <div className={creditProfile.riskLevel > 80 ? '' : 'text-gradient'} style={{ fontSize: '48px', fontWeight: '800', lineHeight: '1', color: creditProfile.riskLevel > 80 ? 'var(--danger)' : 'inherit', filter: creditProfile.riskLevel > 80 ? 'drop-shadow(0 0 8px rgba(255,59,48,0.5))' : 'none' }}>{creditProfile.score}</div>
+                        <div style={{ marginTop: '8px', color: creditProfile.riskLevel > 80 ? 'var(--danger)' : 'var(--success)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          {creditProfile.riskLevel > 80 ? <ShieldAlert size={14} /> : <TrendingUp size={14} /> } 
+                          {creditProfile.riskLevel > 80 ? t('High Risk Model Flag') : t('Model Validated')}
                         </div>
                       </div>
 
                       <div className="panel-title mb-4">{t('Risk Factors Attribution')}</div>
                       <div className="risk-factors">
-                        <div className="risk-factor">
-                          <div className="risk-factor-header">
-                            <span>{t('Payment Consistency')}</span>
-                            <span className="text-gradient">{t('High Positive Impact (+45)')}</span>
+                        {creditProfile.impacts && creditProfile.impacts.map((imp, idx) => (
+                          <div key={idx} className="risk-factor">
+                            <div className="risk-factor-header">
+                              <span>{t(imp.label)}</span>
+                              <span style={{ color: imp.color }}>{t(imp.value)}</span>
+                            </div>
+                            <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: imp.percent, background: imp.color }}></div></div>
                           </div>
-                          <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '85%', background: 'var(--success)' }}></div></div>
-                        </div>
-                        <div className="risk-factor">
-                          <div className="risk-factor-header">
-                            <span>{t('Credit Utilization (32%)')}</span>
-                            <span style={{ color: 'var(--warning)' }}>{t('Moderate Impact (-10)')}</span>
-                          </div>
-                          <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '68%', background: 'var(--warning)' }}></div></div>
-                        </div>
-                        <div className="risk-factor">
-                          <div className="risk-factor-header">
-                            <span>{t('Alternative Data (Utility Bills)')}</span>
-                            <span className="text-gradient">{t('Positive Impact (+15)')}</span>
-                          </div>
-                          <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '75%', background: 'var(--accent-cyan)' }}></div></div>
-                        </div>
+                        ))}
                       </div>
                     </div>
 

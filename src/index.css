@@ -257,7 +257,7 @@ body {
 .entity-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   overflow-y: auto;
   flex: 1;
 }

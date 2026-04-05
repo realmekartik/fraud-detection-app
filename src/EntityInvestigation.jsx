@@ -1,39 +1,109 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Network, ShieldAlert, AlertTriangle, CheckCircle, Activity, Lock, Users, ArrowRight } from 'lucide-react';
+import { Network, ShieldAlert, AlertTriangle, CheckCircle, Activity, Lock, Users, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Mock dataset for 7-layer flow
-const initialNodes = [
-  { id: 'n0', layer: 0, name: 'John Doe', type: 'Origin', status: 'suspect', risk: 95, amount: 150000, date: 'Just Now', details: 'Identified as mule origin' },
-  { id: 'n1_1', layer: 1, name: 'Shell Corp A', type: 'Company', status: 'safe', risk: 20, amount: 50000, date: '1 Hr Ago', details: 'Registered 2 years ago' },
-  { id: 'n1_2', layer: 1, name: 'Shell Corp B', type: 'Company', status: 'suspect', risk: 85, amount: 100000, date: '1 Hr Ago', details: 'Recently changed directors' },
-  { id: 'n2_1', layer: 2, name: 'Offshore Trust', type: 'Trust', status: 'safe', risk: 40, amount: 25000, date: '3 Hrs Ago', details: 'Established in Cayman Islands' },
-  { id: 'n2_2', layer: 2, name: 'Crypto Exchange X', type: 'Exchange', status: 'safe', risk: 30, amount: 75000, date: '4 Hrs Ago', details: 'Regulated exchange' },
-  { id: 'n3_1', layer: 3, name: 'Wallet 1A9Q...', type: 'Wallet', status: 'suspect', risk: 90, amount: 70000, date: '5 Hrs Ago', details: 'Unverified KYC' },
-  { id: 'n3_2', layer: 3, name: 'Local Bank Z', type: 'Bank', status: 'safe', risk: 10, amount: 5000, date: '6 Hrs Ago', details: 'Domestic transfer' },
-  { id: 'n4_1', layer: 4, name: 'P2P Network Node', type: 'P2P', status: 'suspect', risk: 88, amount: 65000, date: '1 Day Ago', details: 'High velocity mixing' },
-  { id: 'n5_1', layer: 5, name: 'Darknet Vendor', type: 'Vendor', status: 'frozen', risk: 100, amount: 60000, date: '2 Days Ago', details: 'Known illegal marketplace' },
-  { id: 'n6_1', layer: 6, name: 'Final Destination', type: 'Cashout', status: 'suspect', risk: 99, amount: 55000, date: '3 Days Ago', details: 'Cashout attempt blocked' }
-];
+// Generate bank-specific 7-layer data
+const generateBankGraph = (bankId) => {
+  let nodes = [];
+  let edges = [];
 
-const initialEdges = [
-  { source: 'n0', target: 'n1_1', amount: 50000, type: 'Wire Transfer' },
-  { source: 'n0', target: 'n1_2', amount: 100000, type: 'Wire Transfer' },
-  { source: 'n1_1', target: 'n2_1', amount: 25000, type: 'ACH' },
-  { source: 'n1_2', target: 'n2_2', amount: 75000, type: 'Crypto Deposit' },
-  { source: 'n2_2', target: 'n3_1', amount: 70000, type: 'Blockchain Tx' },
-  { source: 'n2_2', target: 'n3_2', amount: 5000, type: 'Withdrawal' },
-  { source: 'n3_1', target: 'n4_1', amount: 65000, type: 'P2P Mix' },
-  { source: 'n4_1', target: 'n5_1', amount: 60000, type: 'Darknet Purchase' },
-  { source: 'n5_1', target: 'n6_1', amount: 55000, type: 'Cashout Attempt' }
-];
+  const addEdge = (src, tgt, amount, type) => edges.push({ source: src, target: tgt, amount, type });
+
+  const randomStatus = (isEnd) => {
+    const roll = Math.random();
+    if (isEnd) return roll > 0.5 ? 'blocked' : 'frozen';
+    if (roll > 0.8) return 'suspect';
+    if (roll > 0.9) return 'frozen';
+    return 'safe';
+  };
+
+  const getRisk = (status) => {
+    if (status === 'blocked') return 99;
+    if (status === 'frozen') return Math.floor(Math.random() * 10) + 90;
+    if (status === 'suspect') return Math.floor(Math.random() * 40) + 50;
+    return Math.floor(Math.random() * 30) + 10;
+  };
+
+  if (bankId === 'hdfc') {
+    // Linear / Funnel Pattern
+    nodes = [
+      { id: 'h0', layer: 0, name: 'Neha Gupta', type: 'Origin', status: 'suspect', risk: 85, amount: 200000, date: '1 Hr Ago', details: 'Unusual spike in transfers' },
+      { id: 'h1', layer: 1, name: 'Arjun Mehta', type: 'Intermediary', status: 'safe', risk: 20, amount: 195000, date: '50 Min Ago', details: 'Known associate' },
+      { id: 'h2', layer: 2, name: 'Proxy Account', type: 'Proxy', status: 'safe', risk: 35, amount: 190000, date: '45 Min Ago', details: 'Recent account creation' },
+      { id: 'h3', layer: 3, name: 'Shell Entity One', type: 'Company', status: 'suspect', risk: 88, amount: 185000, date: '40 Min Ago', details: 'Matches typologies' },
+      { id: 'h4', layer: 4, name: 'Crypto Desk', type: 'Exchange', status: 'frozen', risk: 92, amount: 180000, date: '30 Min Ago', details: 'Hold applied by compliance' },
+      { id: 'h5', layer: 5, name: 'Mule Wallet', type: 'Wallet', status: 'suspect', risk: 90, amount: 175000, date: '20 Min Ago', details: 'P2P Mixing detected' },
+      { id: 'h6', layer: 6, name: 'Offshore Cashout', type: 'Cashout', status: 'blocked', risk: 100, amount: 175000, date: '10 Min Ago', details: 'Action blocked securely' }
+    ];
+    for (let i = 0; i < 6; i++) addEdge(`h${i}`, `h${i+1}`, 180000 - (i*5000), 'Wire Transfer');
+    
+  } else if (bankId === 'icici') {
+    // Branching
+    nodes = [
+      { id: 'i0', layer: 0, name: 'Rohan Das', type: 'Origin', status: 'safe', risk: 40, amount: 800000, date: '2 Hrs Ago', details: 'Corporate disembursement' },
+      { id: 'i1_1', layer: 1, name: 'Priya Singh', type: 'Mule', status: 'suspect', risk: 82, amount: 400000, date: '1 Hr Ago', details: 'Split transaction' },
+      { id: 'i1_2', layer: 1, name: 'Vikas Sharma', type: 'Mule', status: 'suspect', risk: 80, amount: 400000, date: '1 Hr Ago', details: 'Split transaction' },
+      { id: 'i2_1', layer: 2, name: 'Dummy Node A', type: 'Proxy', status: 'safe', risk: 30, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_2', layer: 2, name: 'Dummy Node B', type: 'Proxy', status: 'frozen', risk: 95, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_3', layer: 2, name: 'Dummy Node C', type: 'Proxy', status: 'safe', risk: 25, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_4', layer: 2, name: 'Dummy Node D', type: 'Proxy', status: 'safe', risk: 20, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i3_1', layer: 3, name: 'Central Mixer', type: 'Mixer', status: 'suspect', risk: 89, amount: 400000, date: '40 Min Ago', details: 'Consolidation point' },
+      { id: 'i3_2', layer: 3, name: 'Secondary Mixer', type: 'Mixer', status: 'suspect', risk: 85, amount: 400000, date: '40 Min Ago', details: 'Consolidation point' },
+      { id: 'i4_1', layer: 4, name: 'Forex Desk M', type: 'Forex', status: 'safe', risk: 45, amount: 800000, date: '30 Min Ago', details: 'International conversion' },
+      { id: 'i5_1', layer: 5, name: 'Overseas Acc 1', type: 'Bank', status: 'suspect', risk: 75, amount: 400000, date: '20 Min Ago', details: 'High risk jurisdiction' },
+      { id: 'i5_2', layer: 5, name: 'Overseas Acc 2', type: 'Bank', status: 'suspect', risk: 78, amount: 400000, date: '20 Min Ago', details: 'High risk jurisdiction' },
+      { id: 'i6_1', layer: 6, name: 'Final Ultimate', type: 'Cashout', status: 'blocked', risk: 99, amount: 800000, date: 'Just Now', details: 'Intercepted before withdraw' }
+    ];
+    addEdge('i0', 'i1_1', 400000, 'Transfer'); addEdge('i0', 'i1_2', 400000, 'Transfer');
+    addEdge('i1_1', 'i2_1', 200000, 'Split'); addEdge('i1_1', 'i2_2', 200000, 'Split');
+    addEdge('i1_2', 'i2_3', 200000, 'Split'); addEdge('i1_2', 'i2_4', 200000, 'Split');
+    addEdge('i2_1', 'i3_1', 200000, 'Consolidate'); addEdge('i2_2', 'i3_1', 200000, 'Consolidate');
+    addEdge('i2_3', 'i3_2', 200000, 'Consolidate'); addEdge('i2_4', 'i3_2', 200000, 'Consolidate');
+    addEdge('i3_1', 'i4_1', 400000, 'Forex Tx'); addEdge('i3_2', 'i4_1', 400000, 'Forex Tx');
+    addEdge('i4_1', 'i5_1', 400000, 'Cross-Border'); addEdge('i4_1', 'i5_2', 400000, 'Cross-Border');
+    addEdge('i5_1', 'i6_1', 400000, 'Cashout'); addEdge('i5_2', 'i6_1', 400000, 'Cashout');
+    
+  } else {
+    // SBI / Default Circular
+    nodes = [
+      { id: 's0_1', layer: 0, name: 'Rahul Sharma', type: 'Origin', status: 'suspect', risk: 85, amount: 150000, date: 'Just Now', details: 'Unusual volume' },
+      { id: 's0_2', layer: 0, name: 'Amit Verma', type: 'Origin', status: 'safe', risk: 30, amount: 50000, date: 'Just Now', details: 'Regular salary' },
+      { id: 's1_1', layer: 1, name: 'Shell Entity A', type: 'Company', status: 'suspect', risk: 90, amount: 100000, date: '1 Hr Ago', details: 'No trading history' },
+      { id: 's1_2', layer: 1, name: 'Local Business', type: 'Business', status: 'safe', risk: 15, amount: 100000, date: '2 Hrs Ago', details: 'Vendor payment' },
+      { id: 's2_1', layer: 2, name: 'Crypto Converter', type: 'Exchange', status: 'suspect', risk: 82, amount: 200000, date: '3 Hrs Ago', details: 'Fast swap detected' },
+      { id: 's3_1', layer: 3, name: 'Web Mixer', type: 'Mixer', status: 'frozen', risk: 98, amount: 200000, date: '4 Hrs Ago', details: 'Assets frozen by court' },
+      { id: 's4_1', layer: 4, name: 'Proxy Offshore 1', type: 'Proxy', status: 'suspect', risk: 75, amount: 100000, date: '5 Hrs Ago', details: 'Funnel component' },
+      { id: 's4_2', layer: 4, name: 'Proxy Offshore 2', type: 'Proxy', status: 'suspect', risk: 78, amount: 100000, date: '5 Hrs Ago', details: 'Funnel component' },
+      { id: 's5_1', layer: 5, name: 'Dark Vault', type: 'Wallet', status: 'suspect', risk: 88, amount: 200000, date: '6 Hrs Ago', details: 'Consolidation' },
+      { id: 's6_1', layer: 6, name: 'Terminal Cashout', type: 'Cashout', status: 'blocked', risk: 99, amount: 200000, date: '7 Hrs Ago', details: 'Blocked by firewall' }
+    ];
+    addEdge('s0_1', 's1_1', 100000, 'Transfer'); addEdge('s0_1', 's1_2', 50000, 'Transfer');
+    addEdge('s0_2', 's1_2', 50000, 'Transfer');
+    addEdge('s1_1', 's2_1', 100000, 'Crypto Buy'); addEdge('s1_2', 's2_1', 100000, 'Crypto Buy');
+    addEdge('s2_1', 's3_1', 200000, 'Mixer Feed');
+    addEdge('s3_1', 's4_1', 100000, 'Distribution'); addEdge('s3_1', 's4_2', 100000, 'Distribution');
+    addEdge('s4_1', 's5_1', 100000, 'Re-combine'); addEdge('s4_2', 's5_1', 100000, 'Re-combine');
+    addEdge('s5_1', 's6_1', 200000, 'Attempted Exit');
+  }
+
+  return { nodes, edges };
+};
 
 const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges] = useState(initialEdges);
-  const [selectedEntityId, setSelectedEntityId] = useState('n0');
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [selectedEntityId, setSelectedEntityId] = useState(null);
   const [focusedLayer, setFocusedLayer] = useState(null); // null means all visible
   const [hoveredEdge, setHoveredEdge] = useState(null);
+
+  // Dynamic Data Load
+  useEffect(() => {
+    const { nodes: n, edges: e } = generateBankGraph(selectedBank?.id);
+    setNodes(n);
+    setEdges(e);
+    if (n.length > 0) setSelectedEntityId(n[0].id);
+    setFocusedLayer(null);
+  }, [selectedBank?.id]);
 
   const selectedEntity = useMemo(() => nodes.find(n => n.id === selectedEntityId), [nodes, selectedEntityId]);
 
@@ -55,9 +125,9 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, status: action } : n));
     
     // Log to compliance
-    const statusMap = { 'safe': 'CLEARED', 'suspect': 'FLAGGED', 'frozen': 'BLOCKED' };
-    const colorMap = { 'safe': 'success', 'suspect': 'medium', 'frozen': 'high' };
-    const actionLabel = { 'safe': 'Marked Safe', 'suspect': 'Marked Suspect', 'frozen': 'Asset Freeze' };
+    const statusMap = { 'safe': 'CLEARED', 'suspect': 'FLAGGED', 'frozen': 'FROZEN', 'blocked': 'BLOCKED' };
+    const colorMap = { 'safe': 'success', 'suspect': 'medium', 'frozen': 'high', 'blocked': 'danger' };
+    const actionLabel = { 'safe': 'Marked Safe', 'suspect': 'Marked Suspect', 'frozen': 'Asset Freeze', 'blocked': 'Entity Blocked' };
 
     setComplianceLogs(prev => [{
       id: `ACT-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -78,8 +148,8 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
 
     setNodes(prev => prev.map(n => n.layer === layerIndex ? { ...n, status: action } : n));
     
-    const statusMap = { 'safe': 'CLEARED', 'suspect': 'FLAGGED', 'frozen': 'BLOCKED' };
-    const colorMap = { 'safe': 'success', 'suspect': 'medium', 'frozen': 'high' };
+    const statusMap = { 'safe': 'CLEARED', 'suspect': 'FLAGGED', 'frozen': 'FROZEN', 'blocked': 'BLOCKED' };
+    const colorMap = { 'safe': 'success', 'suspect': 'medium', 'frozen': 'high', 'blocked': 'danger' };
 
     setComplianceLogs(prev => [{
       id: `BLK-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -113,8 +183,12 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
       icon = <AlertTriangle size={16} color="var(--warning)" />;
     } else if (node.status === 'frozen') {
       borderClass = 'border-frozen';
-      glowClass = 'glow-frozen text-line-through text-danger';
-      icon = <Lock size={16} color="var(--danger)" />;
+      glowClass = 'glow-frozen text-line-through text-warning';
+      icon = <Lock size={16} color="var(--warning)" />;
+    } else if (node.status === 'blocked') {
+      borderClass = 'border-blocked';
+      glowClass = 'glow-blocked text-line-through text-danger';
+      icon = <XCircle size={16} color="var(--danger)" />;
     }
 
     return (
@@ -131,7 +205,7 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
           {icon}
           <span className="node-type">{node.type}</span>
         </div>
-        <div className={`node-name ${node.status === 'frozen' ? 'striken' : ''}`}>{node.name}</div>
+        <div className={`node-name ${node.status === 'blocked' ? 'striken-danger' : node.status === 'frozen' ? 'striken' : ''}`}>{node.name}</div>
         <div className="node-amount">${node.amount.toLocaleString()}</div>
         <div className="node-risk-bar">
           <div className="node-risk-fill" style={{ width: `${node.risk}%`, background: node.risk > 80 ? 'var(--danger)' : node.risk > 40 ? 'var(--warning)' : 'var(--success)' }}></div>
@@ -178,7 +252,7 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
       {/* Top Header Controls */}
       <div className="glass-panel" data-suspicious={selectedEntity?.risk > 80 ? 'true' : 'false'} style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Active Flow Investigation: Global Node Graph</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Viewing Network: {selectedBank?.name || 'Global'} - 7 Layer Investigation</h2>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
             <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Filter by Layer:</span>
             <button className={`layer-btn ${focusedLayer === null ? 'active' : ''}`} onClick={() => setFocusedLayer(null)}>All</button>
@@ -198,61 +272,72 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
           <div className="panel-title"><Network size={18} color="var(--accent-purple)" /> Interactive 7-Layer Flow Path</div>
         </div>
         
-        <div className="graph-wrapper" ref={graphContainerRef} style={{ position: 'relative', flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex', alignItems: 'center', padding: '20px 0' }}>
-          
-          {/* SVG Overlay for Edges */}
-          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}>
-            {edges.map((edge, i) => {
-              const src = nodePositions[edge.source];
-              const tgt = nodePositions[edge.target];
-              if (!src || !tgt) return null;
-              
-              const isFaded = focusedLayer !== null && (nodes.find(n => n.id === edge.source).layer !== focusedLayer && nodes.find(n => n.id === edge.target).layer !== focusedLayer);
-              const isHovered = hoveredEdge === i;
-              
-              const pathColor = edge.amount > 50000 ? 'var(--danger)' : 'var(--accent-cyan)';
-              
-              return (
-                <g key={i}>
-                  <path 
-                    d={`M ${src.x} ${src.y} C ${src.x + 50} ${src.y}, ${tgt.x - 50} ${tgt.y}, ${tgt.x} ${tgt.y}`} 
-                    stroke={pathColor} 
-                    fill="transparent" 
-                    strokeWidth={isHovered ? "4" : "2"} 
-                    strokeDasharray={edge.amount > 50000 ? "" : "4,4"}
-                    opacity={isFaded ? 0.1 : isHovered ? 1 : 0.6}
-                    style={{ transition: 'all 0.3s' }}
-                  />
-                </g>
-              );
-            })}
-          </svg>
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={selectedBank?.id || 'default'}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="graph-wrapper" 
+            ref={graphContainerRef} 
+            style={{ position: 'relative', flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex', alignItems: 'center', padding: '20px 0' }}
+          >
+            
+            {/* SVG Overlay for Edges */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}>
+              {edges.map((edge, i) => {
+                const src = nodePositions[edge.source];
+                const tgt = nodePositions[edge.target];
+                if (!src || !tgt) return null;
+                
+                const isFaded = focusedLayer !== null && (nodes.find(n => n.id === edge.source)?.layer !== focusedLayer && nodes.find(n => n.id === edge.target)?.layer !== focusedLayer);
+                const isHovered = hoveredEdge === i;
+                
+                const pathColor = edge.amount > 100000 ? 'var(--danger)' : 'var(--accent-cyan)';
+                
+                return (
+                  <g key={`${selectedBank?.id}-edge-${i}`}>
+                    <path 
+                      d={`M ${src.x} ${src.y} C ${src.x + 50} ${src.y}, ${tgt.x - 50} ${tgt.y}, ${tgt.x} ${tgt.y}`} 
+                      stroke={pathColor} 
+                      fill="transparent" 
+                      strokeWidth={isHovered ? "4" : "2"} 
+                      strokeDasharray={edge.amount > 100000 ? "" : "4,4"}
+                      opacity={isFaded ? 0.1 : isHovered ? 1 : 0.6}
+                      style={{ transition: 'all 0.3s' }}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
 
-          {/* HTML Nodes overlaying SVG */}
-          <div className="flow-layers" style={{ display: 'flex', gap: '60px', padding: '0 40px', position: 'relative', zIndex: 2, alignItems: 'center' }}>
-            {layers.map((layerNodes, layerIndex) => {
-              if (layerNodes.length === 0) return null;
-              return (
-                <div key={layerIndex} className="layer-col">
-                  <div className="layer-heading">
-                    Layer {layerIndex}
-                    <div className="layer-actions">
-                      {focusedLayer === layerIndex && (
-                        <>
-                          <button onClick={() => handleLayerBulkAction(layerIndex, 'suspect')} title="Mark Layer Suspect"><AlertTriangle size={12}/></button>
-                          <button onClick={() => handleLayerBulkAction(layerIndex, 'frozen')} title="Freeze Layer"><Lock size={12}/></button>
-                        </>
-                      )}
+            {/* HTML Nodes overlaying SVG */}
+            <div className="flow-layers" style={{ display: 'flex', gap: '60px', padding: '0 40px', position: 'relative', zIndex: 2, alignItems: 'center' }}>
+              {layers.map((layerNodes, layerIndex) => {
+                if (layerNodes.length === 0) return null;
+                return (
+                  <div key={layerIndex} className="layer-col">
+                    <div className="layer-heading">
+                      Layer {layerIndex + 1}
+                      <div className="layer-actions">
+                        {focusedLayer === layerIndex && (
+                          <>
+                            <button onClick={() => handleLayerBulkAction(layerIndex, 'suspect')} title="Mark Layer Suspect"><AlertTriangle size={12}/></button>
+                            <button onClick={() => handleLayerBulkAction(layerIndex, 'blocked')} title="Block Layer"><XCircle size={12}/></button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="layer-nodes">
+                      {layerNodes.map(node => renderNode(node))}
                     </div>
                   </div>
-                  <div className="layer-nodes">
-                    {layerNodes.map(node => renderNode(node))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Investigation Details Panel */}
@@ -271,6 +356,7 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBotton: '12px' }}>
                   <h3 style={{ fontSize: '18px', margin: 0 }}>{selectedEntity.name}</h3>
                   <span className={`badge ${
+                      selectedEntity.status === 'blocked' ? 'badge-high' : 
                       selectedEntity.status === 'frozen' ? 'badge-high' : 
                       selectedEntity.status === 'suspect' ? 'badge-medium' : 'badge-low'
                     }`}>
@@ -321,9 +407,16 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
                 <button 
                   onClick={() => handleAction(selectedEntity.id, 'frozen')} 
                   className={`btn ${selectedEntity.status === 'frozen' ? 'btn-active-frozen' : 'btn-outline-frozen'}`}
-                  style={{ justifyContent: 'center', fontWeight: 'bold' }}
+                  style={{ justifyContent: 'center' }}
                 >
-                  <Lock size={16} /> FREEZE ENTITY
+                  <Lock size={16} /> FREEZE (HOLD)
+                </button>
+                <button 
+                  onClick={() => handleAction(selectedEntity.id, 'blocked')} 
+                  className={`btn ${selectedEntity.status === 'blocked' ? 'btn-active-blocked' : 'btn-outline-blocked'}`}
+                  style={{ justifyContent: 'center', fontWeight: 'bold', background: selectedEntity.status === 'blocked' ? 'var(--danger)' : 'rgba(255, 59, 48, 0.1)', color: selectedEntity.status === 'blocked' ? 'white' : 'var(--danger)', border: '1px solid var(--danger)' }}
+                >
+                  <XCircle size={16} /> BLOCK ENTITY
                 </button>
               </div>
             </motion.div>
