@@ -29,7 +29,7 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import ParticleBackground from './ParticleBackground';
 
 const API_URL = 'http://localhost:3001/api';
@@ -163,7 +163,7 @@ const App = () => {
             (f.score - f.avg) > 0 ? `+${(f.score - f.avg)}` : (f.score - f.avg).toString()
         ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: finalY + 4,
             head: [['Behavioral Factor', 'Customer Score', 'Population Avg', 'Delta Impact']],
             body: factorsData,
@@ -193,7 +193,7 @@ const App = () => {
         doc.setTextColor(0, 0, 0);
         doc.text('Latest KYC Verification Profile', 14, kycY);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: kycY + 4,
             head: [['Identity Attribute', 'Verified Content']],
             body: [
@@ -306,7 +306,7 @@ const App = () => {
         doc.setTextColor(0, 0, 0);
         doc.text('Customer Details', 14, 48);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: 52,
             head: [['Field', 'Details']],
             body: [
