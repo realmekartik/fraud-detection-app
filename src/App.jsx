@@ -16,7 +16,10 @@ import {
   X,
   Lock,
   AlertOctagon,
-  ExternalLink
+  ExternalLink,
+  Download,
+  MessageCircle,
+  Check
 } from 'lucide-react';
 import {
   AreaChart,
@@ -162,6 +165,9 @@ const App = () => {
   const [networkAnomalies, setNetworkAnomalies] = useState([]);
   const [creditProfile, setCreditProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const [isSendingReport, setIsSendingReport] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
 
   // Freeze Tracker State
   const [freezeSearchInput, setFreezeSearchInput] = useState('');
@@ -422,35 +428,41 @@ const App = () => {
 
     const doc = new jsPDF();
 
-    // Header
+    // Header Styled for Fintech Dark / Corporate
+    doc.setFillColor(6, 8, 15);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 30, 'F');
     doc.setFontSize(22);
-    doc.setTextColor(40, 40, 40);
-    doc.text('FinGuard AI - Compliance Rationale Report', 14, 22);
+    doc.setTextColor(0, 240, 255);
+    doc.text('CFI Network - Credit Risk Report', 14, 20);
 
-    doc.setFontSize(11);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-    doc.text(`Account ID: ${creditProfile.id}`, 14, 36);
+    doc.setFontSize(10);
+    doc.setTextColor(200, 200, 200);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 130, 20);
 
     // Customer Info Section
     doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Customer Assessment Summary', 14, 48);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Customer Assessment Summary', 14, 45);
+
+    // Dynamic Risk Evaluation Strings
+    const riskLabel = creditProfile.riskLevel > 90 ? 'High Risk' : creditProfile.riskLevel > 80 ? 'Medium Risk' : 'Low Risk';
+    const profileSummary = creditProfile.riskLevel > 80 ? 'Anomalous velocity and suspected layering flagged' : 'Consistent transactional history with standard behavior';
 
     // Autotable for profile info
     doc.autoTable({
-      startY: 52,
+      startY: 50,
       head: [['Attribute', 'Value']],
       body: [
         ['Customer Name', creditProfile.name],
+        ['Customer ID', creditProfile.id],
+        ['Risk Level', riskLabel],
         ['AI Credit Score', creditProfile.score.toString()],
         ['Model Recommendation', creditProfile.recommendation],
-        ['Suggested Limit', `$${creditProfile.limit.toLocaleString()}`],
-        ['Interest Tier', creditProfile.tier]
+        ['Behavioral Profile', profileSummary]
       ],
       theme: 'grid',
-      headStyles: { fillColor: [0, 240, 255], textColor: 20 },
-      styles: { fontSize: 11, cellPadding: 4 }
+      headStyles: { fillColor: [6, 8, 15], textColor: 255 },
+      styles: { fontSize: 11, cellPadding: 5 }
     });
 
     const finalY = doc.lastAutoTable.finalY + 14;
@@ -480,15 +492,17 @@ const App = () => {
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
 
-    const rationaleText = doc.splitTextToSize(
-      "Regulatory Rationale: The AI model utilizes alternative data factors per guidelines. " +
-      "The SHAP explanation proves that strong on-time alternative utility payments offset " +
-      "any thin traditional credit history attributes. No discriminatory variables (age, race, gender) " +
-      "are utilized in compiling this credit evaluation.",
-      180
-    );
+    let explanationBase = "Regulatory Rationale: This output verifies the AI decision boundary. Specifically prioritizing Behavioral factors, the model mapped this entity according to volume and structural patterns across bank hops. ";
+    explanationBase += creditProfile.riskLevel > 80 ? `Critical: The applicant's deviation from population averages significantly penalized the verification score, mandating a ${creditProfile.recommendation}.` : `The applicant's consistency aligned with trusted entities driving the approval criteria.`;
 
+    const rationaleText = doc.splitTextToSize(explanationBase, 180);
     doc.text(rationaleText, 14, textY);
+
+    // Add corporate footer
+    const footY = doc.internal.pageSize.getHeight() - 15;
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text('CFI Network - Secured by Explainable AI • Confidential & Proprietary', 14, footY);
 
     // KYC Status Section
     const kycY = textY + 25;
@@ -1190,11 +1204,63 @@ const App = () => {
 
                       <button
                         className="btn btn-primary"
-                        style={{ width: '100%', justifyContent: 'center' }}
+                        style={{ width: '100%', justifyContent: 'center', marginBottom: '24px' }}
                         onClick={generateComplianceReport}
                       >
+                        <Download size={16} />
                         {t('Generate Compliance Rationale Report')}
                       </button>
+
+                      {/* Contact / Send Report Simulation Section */}
+                      <div className="panel-title mb-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>{t('Send Report to Customer')}</div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(52, 199, 89, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--success)' }}>
+                            <MessageCircle size={20} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '2px' }}>{t('Registered Mobile')}</div>
+                            <div style={{ fontSize: '15px', fontWeight: '500', color: 'white' }}>+91 98XXXXXX{Math.floor(Math.random() * 90 + 10)}</div>
+                          </div>
+                        </div>
+                        
+                        <button 
+                          className="btn" 
+                          style={{ background: 'rgba(52, 199, 89, 0.15)', color: 'var(--success)', border: '1px solid rgba(52, 199, 89, 0.3)', position: 'relative' }}
+                          onClick={() => {
+                            if (isSendingReport) return;
+                            setIsSendingReport(true);
+                            setTimeout(() => {
+                              setIsSendingReport(false);
+                              setReportSent(true);
+                              setTimeout(() => setReportSent(false), 4000);
+                            }, 1500);
+                          }}
+                        >
+                          {isSendingReport ? <div className="pulse" style={{ margin: '0 8px' }}></div> : '👉 Send Report'}
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {reportSent && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            style={{ padding: '16px', background: 'rgba(52, 199, 89, 0.15)', border: '1px solid var(--success)', borderRadius: '12px', marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}
+                          >
+                            <div style={{ background: 'var(--success)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Check size={14} strokeWidth={3} />
+                            </div>
+                            <div>
+                              <div style={{ color: 'var(--success)', fontWeight: '600', fontSize: '14px', marginBottom: '4px' }}>{t('Report Sent Successfully!')}</div>
+                              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', lineHeight: '1.4' }}>{t('The credit report has been securely shared with the registered mobile number.')}</div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                     </div>
                   </>
                 ) : (
