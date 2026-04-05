@@ -38,30 +38,7 @@ import 'jspdf-autotable';
 import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
 
-const GovHeader = () => (
-  <div style={{
-    height: '48px',
-    background: '#ffffff',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '0 24px',
-    borderBottom: '2px solid #e2e8f0',
-    position: 'relative',
-    zIndex: 9999
-  }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <img src="/state_emblem.png" alt="State Emblem of India" style={{ height: '36px', objectFit: 'contain' }} />
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <span style={{ fontSize: '14px', fontWeight: '800', color: '#1a202c', letterSpacing: '0.5px', lineHeight: '1.2' }}>GOVERNMENT OF INDIA</span>
-        <span style={{ fontSize: '10px', fontWeight: '700', color: '#4a5568', letterSpacing: '0.2px' }}>MINISTRY OF HOME AFFAIRS</span>
-      </div>
-    </div>
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <img src="/amrit_mahotsav.png" alt="Azadi Ka Amrit Mahotsav" style={{ height: '40px', objectFit: 'contain' }} />
-    </div>
-  </div>
-);
+
 
 const API_URL = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
@@ -81,7 +58,79 @@ export const supportedBanks = [
   { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' }
 ];
 
+const hiTranslations = {
+  "Central Fraud Intelligence": "केंद्रीय धोखाधड़ी खुफिया",
+  "Inter-Banking Security Authentication Portal": "अंतर-बैंकिंग सुरक्षा प्रमाणीकरण पोर्टल",
+  "Select your Financial Institution": "अपने वित्तीय संस्थान का चयन करें",
+  "Secure Login to Network": "सुरक्षित लॉगिन नेटवर्क",
+
+  "CFI Network": "CFI नेटवर्क",
+  "Graph Fraud Detection": "ग्राफ धोखाधड़ी का पता लगाना",
+  "Credit Risk Modeling": "क्रेडिट जोखिम मॉडलिंग",
+  "Entity Investigation": "इकाई जांच",
+  "Freeze Source Tracker": "स्रोत ट्रैकर फ्रीज करें",
+  "e-KYC Processing": "ई-केवाईसी प्रसंस्करण",
+  "Compliance Reports": "अनुपालन रिपोर्ट",
+  "File a Complaint": "शिकायत दर्ज करें",
+  "System Online & Active": "सिस्टम ऑनलाइन और सक्रिय",
+
+  "Real-Time Network Intelligence": "रियल-टाइम नेटवर्क इंटेलिजेंस",
+  "Graph-based anomaly detection across multi-layer transaction networks. Live Telemetry enabled.": "मल्टी-लेयर लेनदेन नेटवर्क पर ग्राफ-आधारित विसंगति का पता लगाना। लाइव टेलीमेट्री सक्षम।",
+  "Explainable AI Assessment": "व्याख्यात्मक एआई मूल्यांकन",
+  "Interpretable risk scoring framework combining behavioral and financial features.": "व्यवहार और वित्तीय सुविधाओं का संयोजन करने वाला व्याख्या योग्य जोखिम स्कोरिंग ढांचा।",
+  "File a Cyber Complaint": "साइबर शिकायत दर्ज करें",
+  "Official gateway to register a federal cybercrime incident report immediately.": "संघीय साइबर अपराध घटना रिपोर्ट तुरंत दर्ज करने का आधिकारिक प्रवेश द्वार।",
+
+  "LIVE TRANSACTIONS": "लाइव लेनदेन",
+  "Streaming": "स्ट्रीमिंग",
+  "ONGOING ANOMALIES (FLAGGED)": "चल रही विसंगतियां (फ़्लैग्ड)",
+  "Review Required": "समीक्षा आवश्यक",
+  "INSTANTLY BLOCKED": "तुरंत ब्लॉक किया गया",
+  "Auto-Interception active": "स्वचालित अवरोधन सक्रिय",
+  "FALSE POSITIVE RATE": "गलत सकारात्मक दर",
+  "-0.05% optimization": "-0.05% अनुकूलन",
+
+  "Transaction Volume vs Anomalies (Live Flow)": "लेनदेन की मात्रा बनाम विसंगतियां (लाइव फ्लो)",
+  "High-Risk Entities (DB Synced)": "उच्च जोखिम वाली संस्थाएं (डेटाबेस समन्वयित)",
+  "View All": "सभी देखें",
+
+  "Regulatory Filing & Compliance Vault": "नियामक फाइलिंग और अनुपालन वॉल्ट",
+  "FIPS 140-2 Audited Logs • Retained for 7 Years": "FIPS 140-2 ऑडिटेड लॉग • 7 वर्षों के लिए बनाए रखा",
+  "Query Archives": "पुरालेख खोजना",
+  "Export to CSV": "CSV निर्यात करें",
+
+  "UIDAI e-KYC Verification & Onboarding": "यूआईडीएआई ई-केवाईसी सत्यापन और ऑनबोर्डिंग",
+  "Aadhaar OTP + Liveness Real-time Image Capture Verification": "आधार ओटीपी + आजीविका वास्तविक समय छवि कैप्चर सत्यापन",
+  "Customer Identification Data": "ग्राहक पहचान डेटा",
+  "Customer Full Name": "ग्राहक का पूरा नाम",
+  "Account Number": "खाता संख्या",
+  "Bank Name": "बैंक का नाम",
+  "IFSC Code": "आईएफएससी कोड",
+  "Aadhaar Number": "आधार संख्या",
+  "Linked Mobile Number": "लिंक किया गया मोबाइल नंबर",
+  "Request Aadhaar OTP": "आधार ओटीपी का अनुरोध करें",
+  "Submit": "जमा करें",
+  "Residential Address": "आवासीय पता",
+
+  "Liveness Image Capture": "आजीविका छवि कैप्चर",
+  "Enable Camera": "कैमरा चालु करें",
+  "Capture Photo": "फोटो खींचे",
+  "Verify Liveness & Submit": "आजीविका सत्यापित करें और जमा करें",
+
+  "FINANCIAL FRAUD": "वित्तीय धोखाधड़ी",
+  "If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.": "यदि आपको अनधिकृत पहुंच का संदेह है या संदिग्ध गतिविधि का पता चला है, तो तत्काल संघीय शिकायत दर्ज करें।",
+  "Register Complaint": "शिकायत दर्ज करें",
+  "Language:": "भाषा:"
+};
+
 const App = () => {
+  const [appLang, setAppLang] = useState('en');
+
+  const t = (text) => {
+    if (appLang === 'hi' && hiTranslations[text]) return hiTranslations[text];
+    return text;
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedBank, setSelectedBank] = useState(null);
   const [activeTab, setActiveTab] = useState('fraud');
@@ -602,9 +651,8 @@ const App = () => {
   if (!isAuthenticated) {
     return (
       <>
-        <GovHeader />
         <ParticleBackground />
-        <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -695,7 +743,6 @@ const App = () => {
 
   return (
     <>
-      <GovHeader />
       <ParticleBackground />
       <div className="app-container">
         {/* Sidebar */}
@@ -732,38 +779,38 @@ const App = () => {
           <div className="nav-menu">
             <div className={`nav-item ${activeTab === 'fraud' ? 'active' : ''}`} onClick={() => setActiveTab('fraud')}>
               <Network size={20} />
-              Graph Fraud Detection
+              {t('Graph Fraud Detection')}
             </div>
             <div className={`nav-item ${activeTab === 'credit' ? 'active' : ''}`} onClick={() => setActiveTab('credit')}>
               <BarChart3 size={20} />
-              Credit Risk Modeling
+              {t('Credit Risk Modeling')}
             </div>
             <div className={`nav-item ${activeTab === 'investigation' ? 'active' : ''}`} onClick={() => setActiveTab('investigation')}>
               <Users size={20} />
-              Entity Investigation
+              {t('Entity Investigation')}
             </div>
             <div className={`nav-item ${activeTab === 'freeze_tracker' ? 'active' : ''}`} onClick={() => setActiveTab('freeze_tracker')}>
               <Lock size={20} />
-              Freeze Source Tracker
+              {t('Freeze Source Tracker')}
             </div>
             <div className={`nav-item ${activeTab === 'kyc' ? 'active' : ''}`} onClick={() => setActiveTab('kyc')}>
               <ScanFace size={20} />
-              e-KYC Processing
+              {t('e-KYC Processing')}
             </div>
             <div className={`nav-item ${activeTab === 'compliance' ? 'active' : ''}`} onClick={() => setActiveTab('compliance')}>
               <FileKey size={20} />
-              Compliance Reports
+              {t('Compliance Reports')}
             </div>
             <div className={`nav-item ${activeTab === 'file_complaint' ? 'active' : ''}`} onClick={() => setActiveTab('file_complaint')}>
               <AlertOctagon size={20} />
-              File a Complaint
+              {t('File a Complaint')}
             </div>
           </div>
 
           <div style={{ marginTop: 'auto', padding: '20px 0', borderTop: '1px solid var(--panel-border)' }}>
             <div className="live-indicator mb-4">
               <div className="pulse"></div>
-              System Online & Active
+              {t('System Online & Active')}
             </div>
           </div>
         </div>
@@ -773,22 +820,29 @@ const App = () => {
           <div className="header">
             <div className="header-title">
               <h1 className="text-gradient">
-                {activeTab === 'fraud' ? 'Real-Time Network Intelligence' :
-                  activeTab === 'file_complaint' ? 'File a Cyber Complaint' : 'Explainable AI Assessment'}
+                {activeTab === 'fraud' ? t('Real-Time Network Intelligence') :
+                  activeTab === 'file_complaint' ? t('File a Cyber Complaint') : t('Explainable AI Assessment')}
               </h1>
               <p>
                 {activeTab === 'fraud'
-                  ? 'Graph-based anomaly detection across multi-layer transaction networks. Live Telemetry enabled.'
+                  ? t('Graph-based anomaly detection across multi-layer transaction networks. Live Telemetry enabled.')
                   : activeTab === 'file_complaint'
-                    ? 'Official gateway to register a federal cybercrime incident report immediately.'
-                    : 'Interpretable risk scoring framework combining behavioral and financial features.'}
+                    ? t('Official gateway to register a federal cybercrime incident report immediately.')
+                    : t('Interpretable risk scoring framework combining behavioral and financial features.')}
               </p>
             </div>
 
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '20px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Search size={16} color="var(--text-secondary)" />
-                <input type="text" placeholder="Search entity or TXN..." style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none' }} />
+              <div className="glass-panel" style={{ padding: '6px 16px', borderRadius: '20px', display: 'flex', gap: '16px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: 'var(--accent-cyan)', fontWeight: '600', fontSize: '14px' }}>{t('Language:')}</span>
+                  <select value={appLang} onChange={(e) => setAppLang(e.target.value)} style={{ background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '6px', padding: '4px 8px', outline: 'none', fontSize: '13px', cursor: 'pointer' }}>
+                    <option value="en" style={{ color: '#000' }}>English</option>
+                    <option value="hi" style={{ color: '#000' }}>हिन्दी (Hindi)</option>
+                  </select>
+                </div>
+                <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.2)' }}></div>
+                <img src="/amrit_mahotsav.png" alt="Azadi Ka Amrit Mahotsav" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.1) drop-shadow(0 0 4px rgba(255,255,255,0.2))' }} />
               </div>
               <button className="btn" style={{ background: 'transparent', padding: '8px' }}>
                 <Bell size={20} />
@@ -850,20 +904,20 @@ const App = () => {
               >
                 {/* Stats */}
                 <div className="glass-panel stat-card">
-                  <div className="stat-card-title">Live Transactions</div>
+                  <div className="stat-card-title">{t('LIVE TRANSACTIONS')}</div>
                   <div className="stat-card-value">
                     {currentTelemetry.transactions.toLocaleString()}
                     <Activity size={20} color="var(--accent-cyan)" />
                   </div>
-                  <div className="stat-card-change change-positive">Streaming</div>
+                  <div className="stat-card-change change-positive">{t('Streaming')}</div>
                 </div>
                 <div className="glass-panel stat-card" data-suspicious="true">
-                  <div className="stat-card-title">Ongoing Anomalies (Flagged)</div>
+                  <div className="stat-card-title">{t('ONGOING ANOMALIES (FLAGGED)')}</div>
                   <div className="stat-card-value">
                     {currentTelemetry.flagged.toLocaleString()}
                     <AlertTriangle size={20} color="var(--warning)" />
                   </div>
-                  <div className="stat-card-change change-warning">Review Required</div>
+                  <div className="stat-card-change change-warning">{t('Review Required')}</div>
                 </div>
                 <div className="glass-panel stat-card">
                   <div className="stat-card-title">Instantly Blocked</div>
@@ -961,38 +1015,38 @@ const App = () => {
                         </div>
                         <div>
                           <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{creditProfile.name}</h2>
-                          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>ID: {creditProfile.id}</p>
+                          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('ID:')} {creditProfile.id}</p>
                         </div>
                       </div>
 
                       <div style={{ padding: '20px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.1)', textAlign: 'center', marginBottom: '24px' }}>
-                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>AI Credit Score</div>
+                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>{t('AI Credit Score')}</div>
                         <div className="text-gradient" style={{ fontSize: '48px', fontWeight: '800', lineHeight: '1' }}>{creditProfile.score}</div>
                         <div style={{ marginTop: '8px', color: 'var(--success)', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                          <TrendingUp size={14} /> Model Validated
+                          <TrendingUp size={14} /> {t('Model Validated')}
                         </div>
                       </div>
 
-                      <div className="panel-title mb-4">Risk Factors Attribution</div>
+                      <div className="panel-title mb-4">{t('Risk Factors Attribution')}</div>
                       <div className="risk-factors">
                         <div className="risk-factor">
                           <div className="risk-factor-header">
-                            <span>Payment Consistency</span>
-                            <span className="text-gradient">High Positive Impact (+45)</span>
+                            <span>{t('Payment Consistency')}</span>
+                            <span className="text-gradient">{t('High Positive Impact (+45)')}</span>
                           </div>
                           <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '85%', background: 'var(--success)' }}></div></div>
                         </div>
                         <div className="risk-factor">
                           <div className="risk-factor-header">
-                            <span>Credit Utilization (32%)</span>
-                            <span style={{ color: 'var(--warning)' }}>Moderate Impact (-10)</span>
+                            <span>{t('Credit Utilization (32%)')}</span>
+                            <span style={{ color: 'var(--warning)' }}>{t('Moderate Impact (-10)')}</span>
                           </div>
                           <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '68%', background: 'var(--warning)' }}></div></div>
                         </div>
                         <div className="risk-factor">
                           <div className="risk-factor-header">
-                            <span>Alternative Data (Utility Bills)</span>
-                            <span className="text-gradient">Positive Impact (+15)</span>
+                            <span>{t('Alternative Data (Utility Bills)')}</span>
+                            <span className="text-gradient">{t('Positive Impact (+15)')}</span>
                           </div>
                           <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '75%', background: 'var(--accent-cyan)' }}></div></div>
                         </div>
@@ -1002,7 +1056,7 @@ const App = () => {
                     {/* Radar Chart */}
                     <div className="glass-panel" style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column' }}>
                       <div className="panel-header">
-                        <div className="panel-title">Behavioral Modeling Profile</div>
+                        <div className="panel-title">{t('Behavioral Modeling Profile')}</div>
                       </div>
                       <div style={{ flex: 1, minHeight: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -1011,7 +1065,7 @@ const App = () => {
                             <PolarAngleAxis dataKey="factor" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                             <Radar name={creditProfile.name} dataKey="score" stroke="var(--accent-cyan)" fill="var(--accent-cyan)" fillOpacity={0.5} />
-                            <Radar name="Population Avg" dataKey="avg" stroke="var(--text-secondary)" fill="var(--text-secondary)" fillOpacity={0.2} strokeDasharray="3 3" />
+                            <Radar name={t("Population Avg")} dataKey="avg" stroke="var(--text-secondary)" fill="var(--text-secondary)" fillOpacity={0.2} strokeDasharray="3 3" />
                             <Tooltip
                               contentStyle={{ background: 'var(--panel-bg)', borderColor: 'var(--panel-border)', borderRadius: '8px' }}
                             />
@@ -1020,10 +1074,10 @@ const App = () => {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-cyan)' }}></div> Customer Profile
+                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-cyan)' }}></div> {t('Customer Profile')}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--text-secondary)', opacity: 0.5 }}></div> Population Average
+                          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--text-secondary)', opacity: 0.5 }}></div> {t('Population Average')}
                         </div>
                       </div>
                     </div>
@@ -1031,24 +1085,24 @@ const App = () => {
                     {/* Approvals */}
                     <div className="glass-panel" style={{ gridColumn: 'span 4' }}>
                       <div className="panel-header">
-                        <div className="panel-title">Model Explainability Output</div>
+                        <div className="panel-title">{t('Model Explainability Output')}</div>
                       </div>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
-                        The SHAP (SHapley Additive exPlanations) values indicate that the customer's on-time utility payments (alternative data) significantly offset their thin traditional credit file, pushing the decision boundary beyond the threshold for approval.
+                        {t("The SHAP (SHapley Additive exPlanations) values indicate that the customer's on-time utility payments (alternative data) significantly offset their thin traditional credit file, pushing the decision boundary beyond the threshold for approval.")}
                       </p>
 
                       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>RECOMMENDATION</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{t('RECOMMENDATION')}</div>
                         <div style={{ color: 'var(--success)', fontSize: '18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {creditProfile.recommendation} <ShieldAlert size={18} />
                         </div>
                         <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', margin: '12px 0' }}></div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Suggested Limit:</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{t('Suggested Limit:')}</span>
                           <span style={{ color: 'white', fontWeight: '500' }}>${creditProfile.limit.toLocaleString()}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '8px' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Interest Tier:</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{t('Interest Tier:')}</span>
                           <span style={{ color: 'white', fontWeight: '500' }}>{creditProfile.tier}</span>
                         </div>
                       </div>
@@ -1058,12 +1112,12 @@ const App = () => {
                         style={{ width: '100%', justifyContent: 'center' }}
                         onClick={generateComplianceReport}
                       >
-                        Generate Compliance Rationale Report
+                        {t('Generate Compliance Rationale Report')}
                       </button>
                     </div>
                   </>
                 ) : (
-                  <div style={{ gridColumn: 'span 12', color: 'white', textAlign: 'center', padding: '40px' }}>Loading Credit Risk Profile from Backend...</div>
+                  <div style={{ gridColumn: 'span 12', color: 'white', textAlign: 'center', padding: '40px' }}>{t('Loading Credit Risk Profile from Backend...')}</div>
                 )}
               </motion.div>
             ) : activeTab === 'investigation' ? (
@@ -1093,19 +1147,19 @@ const App = () => {
                 <div className="glass-panel" style={{ gridColumn: 'span 12' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <div>
-                      <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Freeze Source Tracker</h2>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Trace account freeze & block origins across inter-bank branches.</p>
+                      <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{t('Freeze Source Tracker')}</h2>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('Trace account freeze & block origins across inter-bank branches.')}</p>
                     </div>
                     <div style={{ fontSize: '12px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Lock size={14} color="var(--accent-cyan)" />
-                      Accessing from: {currentUser?.branch_name}, {currentUser?.city}
+                      {t('Accessing from:')} {currentUser?.branch_name}, {currentUser?.city}
                     </div>
                   </div>
 
                   <form onSubmit={handleFreezeSearch} style={{ display: 'flex', gap: '16px', marginBottom: '30px' }}>
                     <input
                       type="text"
-                      placeholder="Enter Customer ID, Account No, or Name (e.g. CUST001)"
+                      placeholder={t("Enter Customer ID, Account No, or Name (e.g. CUST001)")}
                       value={freezeSearchInput}
                       onChange={(e) => setFreezeSearchInput(e.target.value)}
                       autoFocus
@@ -1113,21 +1167,21 @@ const App = () => {
                     />
                     <button type="submit" className="btn btn-primary" style={{ padding: '0 24px', display: 'flex', gap: '8px', alignItems: 'center' }} disabled={isFreezeSearching}>
                       {isFreezeSearching ? <div className="pulse" style={{ width: 16, height: 16 }}></div> : <Search size={18} />}
-                      Search Trace
+                      {t('Search Trace')}
                     </button>
                   </form>
 
                   {isFreezeSearching && (
                     <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
                       <div className="pulse" style={{ width: 30, height: 30, margin: '0 auto 16px', background: 'var(--accent-cyan)' }}></div>
-                      Querying FI Network Nodes...
+                      {t('Querying FI Network Nodes...')}
                     </div>
                   )}
 
                   {!isFreezeSearching && hasSearched && !freezeSearchResults && (
                     <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
                       <AlertTriangle size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                      No freeze or block trace found for this input.
+                      {t('No freeze or block trace found for this input.')}
                     </div>
                   )}
 
@@ -1136,19 +1190,19 @@ const App = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${freezeSearchResults.status === 'Blocked' ? 'var(--danger)' : freezeSearchResults.status === 'Frozen' ? 'var(--warning)' : 'var(--success)'}` }}>
                         <div>
                           <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{freezeSearchResults.name}</div>
-                          <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>ID: {freezeSearchResults.customerId} | Acc: {freezeSearchResults.accountNumber}</div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{t('ID:')} {freezeSearchResults.customerId} | {t('Acc:')} {freezeSearchResults.accountNumber}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                           <div style={{ padding: '6px 12px', borderRadius: '4px', background: freezeSearchResults.status === 'Blocked' ? 'rgba(255,70,70,0.1)' : 'rgba(255,180,0,0.1)', color: freezeSearchResults.status === 'Blocked' ? 'var(--danger)' : 'var(--warning)', fontWeight: 'bold', fontSize: '14px' }}>
-                            STATUS: {freezeSearchResults.status.toUpperCase()}
+                            {t('STATUS:')} {freezeSearchResults.status.toUpperCase()}
                           </div>
                           <button className="btn" onClick={() => setActiveTab('investigation')} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '13px' }}>
-                            <Network size={14} /> View in Graph
+                            <Network size={14} /> {t('View in Graph')}
                           </button>
                         </div>
                       </div>
 
-                      <h3 style={{ fontSize: '16px', marginBottom: '16px', color: 'var(--text-secondary)' }}>Action Trace Timeline</h3>
+                      <h3 style={{ fontSize: '16px', marginBottom: '16px', color: 'var(--text-secondary)' }}>{t('Action Trace Timeline')}</h3>
                       <div style={{ position: 'relative', paddingLeft: '24px' }}>
                         <div style={{ position: 'absolute', top: '10px', bottom: '10px', left: '7px', width: '2px', background: 'var(--panel-border)' }}></div>
                         {freezeSearchResults.actions.map((act, i) => (
@@ -1163,7 +1217,7 @@ const App = () => {
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {act.city}</span>
                             </div>
                             <div style={{ fontSize: '13px', padding: '8px', background: 'rgba(0,0,0,0.3)', borderRadius: '4px', borderLeft: '2px solid var(--accent-cyan)' }}>
-                              <strong>Reason:</strong> {act.reason}
+                              <strong>{t('Reason:')}</strong> {act.reason}
                             </div>
                           </div>
                         ))}
@@ -1183,62 +1237,78 @@ const App = () => {
               >
                 <div className="glass-panel" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: '600' }}>UIDAI e-KYC Verification & Onboarding</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Aadhaar OTP + Liveness Real-time Image Capture Verification</p>
+                    <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{t('UIDAI e-KYC Verification & Onboarding')}</h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('Aadhaar OTP + Liveness Real-time Image Capture Verification')}</p>
                   </div>
-                  <div style={{ padding: '6px 12px', background: 'rgba(52, 199, 89, 0.1)', color: 'var(--success)', borderRadius: '20px', border: '1px solid rgba(52, 199, 89, 0.3)', fontSize: '12px', fontWeight: 'bold' }}>UIDAI GATEWAY: ONLINE</div>
+                  <div style={{ padding: '6px 12px', background: 'rgba(52, 199, 89, 0.1)', color: 'var(--success)', borderRadius: '20px', border: '1px solid rgba(52, 199, 89, 0.3)', fontSize: '12px', fontWeight: 'bold' }}>{t('UIDAI GATEWAY: ONLINE')}</div>
                 </div>
 
                 <div className="glass-panel" style={{ gridColumn: 'span 7', minHeight: '400px' }}>
                   <div className="panel-header">
-                    <div className="panel-title"><Users size={18} color="var(--accent-cyan)" /> Customer Identification Data</div>
+                    <div className="panel-title"><Users size={18} color="var(--accent-cyan)" /> {t('Customer Identification Data')}</div>
                   </div>
 
                   <form style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '12px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Customer Full Name</label>
-                        <input type="text" value={kycData.customerName} onChange={(e) => setKycData({ ...kycData, customerName: e.target.value })} placeholder="As per bank records" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Customer Full Name')}</label>
+                        <input type="text" value={kycData.customerName} onChange={(e) => setKycData({ ...kycData, customerName: e.target.value })} placeholder={t("As per bank records")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Account Number</label>
-                        <input type="text" value={kycData.accountNumber} onChange={(e) => setKycData({ ...kycData, accountNumber: e.target.value })} placeholder="Account Number" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Account Number')}</label>
+                        <input type="text" value={kycData.accountNumber} onChange={(e) => setKycData({ ...kycData, accountNumber: e.target.value })} placeholder={t("Account Number")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Bank Name</label>
-                        <input type="text" value={kycData.bankName} onChange={(e) => setKycData({ ...kycData, bankName: e.target.value })} placeholder="e.g. SBI, HDFC" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Bank Name')}</label>
+                        <input type="text" value={kycData.bankName} onChange={(e) => setKycData({ ...kycData, bankName: e.target.value })} placeholder={t("e.g. SBI, HDFC")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>IFSC Code</label>
-                        <input type="text" value={kycData.ifscCode} onChange={(e) => setKycData({ ...kycData, ifscCode: e.target.value })} placeholder="IFSC Code" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('IFSC Code')}</label>
+                        <input type="text" value={kycData.ifscCode} onChange={(e) => setKycData({ ...kycData, ifscCode: e.target.value })} placeholder={t("IFSC Code")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Aadhaar Number</label>
-                        <input type="text" value={kycData.aadhaarNumber} onChange={(e) => setKycData({ ...kycData, aadhaarNumber: e.target.value })} placeholder="XXXX - XXXX - XXXX" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none', letterSpacing: '2px' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Aadhaar Number')}</label>
+                        <input type="text" value={kycData.aadhaarNumber} onChange={(e) => setKycData({ ...kycData, aadhaarNumber: e.target.value })} placeholder={t("XXXX - XXXX - XXXX")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none', letterSpacing: '2px' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Linked Mobile Number</label>
-                        <input type="text" value={kycData.mobileNumber} onChange={(e) => setKycData({ ...kycData, mobileNumber: e.target.value })} placeholder="+91 9XXXX XXXX" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Linked Mobile Number')}</label>
+                        <input type="text" value={kycData.mobileNumber} onChange={(e) => setKycData({ ...kycData, mobileNumber: e.target.value })} placeholder={t("+91 9XXXX XXXX")} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} />
                       </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                      <button type="button" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>Request Aadhaar OTP</button>
-                      <input type="text" placeholder="Enter 6-digit OTP" style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px dotted var(--accent-cyan)', color: 'var(--accent-cyan)', outline: 'none', textAlign: 'center', letterSpacing: '4px' }} />
+                      <button type="button" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => {
+                        if (!kycData.aadhaarNumber || !kycData.mobileNumber) {
+                          addToast(t("Please enter Aadhaar and Mobile Number first."), "warning");
+                        } else {
+                          addToast(t("OTP will be sent to registered mobile number"), "success");
+                        }
+                      }}>{t('Request Aadhaar OTP')}</button>
+                      <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                        <input id="kyc-otp-input" type="text" placeholder={t("Enter 6-digit OTP")} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px dotted var(--accent-cyan)', color: 'var(--accent-cyan)', outline: 'none', textAlign: 'center', letterSpacing: '4px' }} />
+                        <button type="button" className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0 20px', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }} onClick={() => {
+                          const otpVal = document.getElementById('kyc-otp-input').value;
+                          if (otpVal.length >= 4) {
+                            addToast(t("Data is sent successfully"), "success");
+                          } else {
+                            addToast(t("Please enter a valid OTP"), "warning");
+                          }
+                        }}>{t('Submit')}</button>
+                      </div>
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--panel-border)', margin: '16px 0' }}></div>
 
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>Residential Address</label>
-                      <textarea placeholder="Enter address..." value={kycData.address} onChange={(e) => setKycData({ ...kycData, address: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none', resize: 'none', minHeight: '80px' }}></textarea>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Residential Address')}</label>
+                      <textarea placeholder={t("Enter address...")} value={kycData.address} onChange={(e) => setKycData({ ...kycData, address: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none', resize: 'none', minHeight: '80px' }}></textarea>
                     </div>
                   </form>
                 </div>
 
                 <div className="glass-panel" style={{ gridColumn: 'span 5', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="panel-header">
-                    <div className="panel-title"><ScanFace size={18} color="var(--accent-purple)" /> Liveness Image Capture</div>
+                    <div className="panel-title"><ScanFace size={18} color="var(--accent-purple)" /> {t('Liveness Image Capture')}</div>
                   </div>
 
                   <div style={{ flex: 1, background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px dashed var(--panel-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', overflow: 'hidden' }}>
@@ -1257,7 +1327,7 @@ const App = () => {
                         {!cameraActive && (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <ScanFace size={64} color="var(--text-secondary)" style={{ opacity: 0.5, marginBottom: '16px' }} />
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center' }}>Awaiting Camera Permissions...</p>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center' }}>{t('Awaiting Camera Permissions...')}</p>
                           </div>
                         )}
 
@@ -1270,11 +1340,11 @@ const App = () => {
 
                   <div style={{ display: 'flex', gap: '12px' }}>
                     {!cameraActive ? (
-                      <button type="button" onClick={startCamera} className="btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)', textAlign: 'center', justifyContent: 'center' }}>Enable Camera</button>
+                      <button type="button" onClick={startCamera} className="btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)', textAlign: 'center', justifyContent: 'center' }}>{t('Enable Camera')}</button>
                     ) : (
-                      <button type="button" onClick={captureImage} className="btn" style={{ flex: 1, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--accent-cyan)', border: '1px solid rgba(0, 240, 255, 0.3)', textAlign: 'center', justifyContent: 'center' }}>Capture Photo</button>
+                      <button type="button" onClick={captureImage} className="btn" style={{ flex: 1, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--accent-cyan)', border: '1px solid rgba(0, 240, 255, 0.3)', textAlign: 'center', justifyContent: 'center' }}>{t('Capture Photo')}</button>
                     )}
-                    <button type="button" onClick={handleKYCSubmit} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'var(--success)', borderColor: 'var(--success)' }}>Verify Liveness & Submit</button>
+                    <button type="button" onClick={handleKYCSubmit} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'var(--success)', borderColor: 'var(--success)' }}>{t('Verify Liveness & Submit')}</button>
                   </div>
                 </div>
               </motion.div>
@@ -1289,10 +1359,10 @@ const App = () => {
               >
                 <div className="glass-panel" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Regulatory Filing & Compliance Vault</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>FIPS 140-2 Audited Logs • Retained for 7 Years</p>
+                    <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{t('Regulatory Filing & Compliance Vault')}</h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('FIPS 140-2 Audited Logs • Retained for 7 Years')}</p>
                   </div>
-                  <button className="btn btn-primary"><Search size={16} style={{ marginRight: '6px' }} /> Query Archives</button>
+                  <button className="btn btn-primary"><Search size={16} style={{ marginRight: '6px' }} /> {t('Query Archives')}</button>
                 </div>
 
                 <div className="glass-panel" style={{ gridColumn: 'span 8', minHeight: '400px' }}>
@@ -1353,8 +1423,8 @@ const App = () => {
                             <td style={{ padding: '12px 8px' }}>{log.time}</td>
                             <td style={{ padding: '12px 8px' }}>
                               <span className={`badge ${log.statusColor === 'high' ? 'badge-high' :
-                                  log.statusColor === 'medium' ? 'badge-medium' :
-                                    log.statusColor === 'success' ? 'badge-success' : 'badge-low'
+                                log.statusColor === 'medium' ? 'badge-medium' :
+                                  log.statusColor === 'success' ? 'badge-success' : 'badge-low'
                                 }`}>{log.status}</span>
                             </td>
                           </motion.tr>
@@ -1396,6 +1466,9 @@ const App = () => {
                     <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', transition: 'transform 0.5s ease' }} />
                   </div>
                   <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-40px', background: 'rgba(13, 17, 23, 1)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', marginBottom: '20px', width: '100%' }}>
+                      <img src="/state_emblem.png" alt="National Emblem of India" style={{ height: '70px', filter: 'invert(1) brightness(2)' }} />
+                    </div>
                     <h2 className="text-gradient" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 16px 0', letterSpacing: '2px', textShadow: '0 4px 20px rgba(0,240,255,0.2)' }}>FINANCIAL FRAUD</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '36px', maxWidth: '420px', fontSize: '15px', lineHeight: '1.6' }}>If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.</p>
 
