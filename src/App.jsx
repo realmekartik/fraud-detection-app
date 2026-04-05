@@ -33,6 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ParticleBackground from './ParticleBackground';
+import EntityInvestigation from './EntityInvestigation';
 
 const API_URL = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
@@ -885,72 +886,13 @@ const App = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="dashboard-grid"
+              style={{ padding: '0' }}
             >
-              {/* Case Management Header */}
-              <div className="glass-panel" data-suspicious="true" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Active Investigation: TXN-8942 (CryptoBridge Ltd)</h2>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Assigned Analyst: Auto-Discovery • Status: PENDING REVIEW</p>
-                </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => handleCaseAction('freeze', 'TXN-8942')} className="btn" style={{ background: 'rgba(255, 59, 48, 0.1)', color: 'var(--danger)', border: '1px solid rgba(255, 59, 48, 0.3)' }}>Freeze Assets</button>
-                  <button onClick={() => handleCaseAction('false-positive', 'TXN-8942')} className="btn" style={{ background: 'rgba(255, 204, 0, 0.1)', color: 'var(--warning)', border: '1px solid rgba(255, 204, 0, 0.3)' }}>Mark False Positive</button>
-                  <button onClick={() => handleCaseAction('sar', 'TXN-8942')} className="btn btn-primary">File SAR (Suspicious Activity Report)</button>
-                </div>
-              </div>
-
-              {/* Link Analysis Visual Mock */}
-              <div className="glass-panel" style={{ gridColumn: 'span 8', minHeight: '400px' }}>
-                <div className="panel-header">
-                  <div className="panel-title"><Network size={18} color="var(--accent-purple)" /> Link Analysis (Entity Hops)</div>
-                </div>
-                <div style={{ position: 'relative', height: '300px', background: 'radial-gradient(circle at center, rgba(157,78,221,0.05), transparent 70%)', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
-                    {/* CSS-based Mock Nodes */}
-                    <div style={{ position: 'absolute', top: '130px', left: '10%', padding: '8px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--text-secondary)', borderRadius: '8px', fontSize: '12px', zIndex: 2 }}>Origin: John Doe</div>
-                    <div style={{ position: 'absolute', top: '50px', left: '40%', padding: '8px 12px', background: 'rgba(0,240,255,0.1)', border: '1px solid var(--accent-cyan)', borderRadius: '8px', fontSize: '12px', zIndex: 2 }}>Hop 1: Shell Corp A</div>
-                    <div style={{ position: 'absolute', top: '220px', left: '45%', padding: '8px 12px', background: 'rgba(0,240,255,0.1)', border: '1px solid var(--accent-cyan)', borderRadius: '8px', fontSize: '12px', zIndex: 2 }}>Hop 1: Shell Corp B</div>
-                    <div style={{ position: 'absolute', top: '130px', left: '70%', padding: '8px 12px', background: 'rgba(255,59,48,0.1)', border: '1px solid var(--danger)', borderRadius: '8px', fontSize: '12px', zIndex: 2, boxShadow: '0 0 15px rgba(255,59,48,0.5)' }}>Destination: CryptoBridge Ltd</div>
-                    
-                    {/* SVG Connecting Lines Mock */}
-                    <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}>
-                        <path d="M 120 145 C 200 145, 200 65, 300 65" stroke="var(--text-secondary)" fill="transparent" strokeWidth="2" strokeDasharray="5,5"/>
-                        <path d="M 120 145 C 200 145, 200 235, 350 235" stroke="var(--text-secondary)" fill="transparent" strokeWidth="2" strokeDasharray="5,5"/>
-                        <path d="M 380 65 C 450 65, 450 145, 520 145" stroke="var(--danger)" fill="transparent" strokeWidth="2" />
-                        <path d="M 430 235 C 480 235, 480 145, 520 145" stroke="var(--danger)" fill="transparent" strokeWidth="2" />
-                    </svg>
-                </div>
-              </div>
-
-              {/* KYC Profile & Geolocation Mock */}
-              <div className="glass-panel" style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <div className="panel-title mb-2">KYC Discrepancies</div>
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', fontSize: '13px', lineHeight: '1.6' }}>
-                    <div style={{ color: 'var(--danger)', fontWeight: '600', marginBottom: '8px' }}>High Risk Failure</div>
-                    Domain <span style={{ color: 'var(--accent-cyan)' }}>cryptobridge.ltd</span> registered 3 days ago. IP originates from high-risk jurisdiction (Embargoed Region).
-                  </div>
-                </div>
-
-                <div>
-                  <div className="panel-title mb-2">Transaction Velocity Rules</div>
-                  <div className="risk-factors">
-                    <div className="risk-factor">
-                      <div className="risk-factor-header">
-                        <span>Deposits &gt; $10,000 (24h)</span>
-                        <span style={{ color: 'var(--danger)' }}>Triggered 9x</span>
-                      </div>
-                      <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: '100%', background: 'var(--danger)' }}></div></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ borderTop: '1px solid var(--panel-border)', paddingTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <span className="badge badge-high">AML Alert</span>
-                  <span className="badge badge-high">Structuring</span>
-                  <span className="badge badge-medium">IP Proxy Detected</span>
-                </div>
-              </div>
+              <EntityInvestigation 
+                addToast={addToast} 
+                setComplianceLogs={setComplianceLogs} 
+                selectedBank={selectedBank} 
+              />
             </motion.div>
           ) : activeTab === 'kyc' ? (
             <motion.div 
