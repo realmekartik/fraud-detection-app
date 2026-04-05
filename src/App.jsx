@@ -539,14 +539,14 @@ const App = () => {
 
   const supportedBanks = [
     { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
-    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: 'https://1000logos.net/wp-content/uploads/2021/06/HDFC-Bank-logo.jpg' },
+    { id: 'hdfc', name: 'HDFC Bank', color: '#004C8F', logo: '/hdfc_bank_logo.png?v=2' },
     { id: 'pnb', name: 'PNB', color: '#A32020', logo: 'https://static.vecteezy.com/system/resources/previews/020/336/282/original/punjab-national-bank-pnb-bank-logo-free-free-vector.jpg' },
     { id: 'bob', name: 'Bank of Baroda', color: '#F15A22', logo: 'https://1000logos.net/wp-content/uploads/2021/06/Bank-of-Baroda-logo.png' },
     { id: 'canara', name: 'Canara', color: '#005EB8', logo: 'https://www.liblogo.com/img-logo/ca8792c86d-canara-bank-logo-canara-bank-launches-qualified-institutional-placement.png' },
     { id: 'union', name: 'Union Bank', color: '#D52B1E', logo: 'https://www.bankingfinance.in/wp-content/uploads/2017/12/Union-Bank-of-India.jpg' },
     { id: 'boi', name: 'Bank of India', color: '#005A9C', logo: 'https://logos-world.net/wp-content/uploads/2020/01/Bank-of-India-Logo-before-2011.png' },
     { id: 'indian', name: 'Indian Bank', color: '#005EB8', logo: 'https://companieslogo.com/img/orig/INDIANB.NS_BIG-f675f730.png?t=1615846835' },
-    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: 'https://logo.clearbit.com/centralbankofindia.co.in' },
+    { id: 'central', name: 'Central Bank', color: '#005EB8', logo: '/central_bank_logo.png' },
     { id: 'iob', name: 'Indian Overseas', color: '#005A9C', logo: 'https://companieslogo.com/img/orig/IOB.NS_BIG-09a26177.png?t=1613454098' },
     { id: 'uco', name: 'UCO Bank', color: '#FFD700', logo: 'https://www.thebusinessquiz.com/wp-content/uploads/2014/11/UCO-Bank-Logo.jpg' },
     { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' },
