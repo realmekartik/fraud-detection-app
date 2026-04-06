@@ -43,6 +43,7 @@ import * as faceapi from 'face-api.js';
 import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
 import RedTeamSimulator from './RedTeamSimulator';
+import CounterfactualExplainer from './CounterfactualExplainer';
 
 
 
@@ -1414,8 +1415,8 @@ const App = () => {
                           </motion.div>
                         )}
                       </AnimatePresence>
-
                     </div>
+                    <CounterfactualExplainer entityName="Apex Global Trading LLC" baseScore={555} />
                   </>
                 ) : (
                   <div style={{ gridColumn: 'span 12', color: 'white', textAlign: 'center', padding: '40px' }}>{t('Loading Credit Risk Profile from Backend...')}</div>
