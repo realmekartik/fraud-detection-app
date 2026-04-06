@@ -27,63 +27,63 @@ const generateBankGraph = (bankId) => {
   if (bankId === 'hdfc') {
     // Linear / Funnel Pattern
     nodes = [
-      { id: 'h0', layer: 0, name: 'Neha Gupta', type: 'Origin', status: 'suspect', risk: 85, amount: 200000, date: '1 Hr Ago', details: 'Unusual spike in transfers' },
-      { id: 'h1', layer: 1, name: 'Arjun Mehta', type: 'Intermediary', status: 'safe', risk: 20, amount: 195000, date: '50 Min Ago', details: 'Known associate' },
-      { id: 'h2', layer: 2, name: 'Proxy Account', type: 'Proxy', status: 'safe', risk: 35, amount: 190000, date: '45 Min Ago', details: 'Recent account creation' },
-      { id: 'h3', layer: 3, name: 'Shell Entity One', type: 'Company', status: 'suspect', risk: 88, amount: 185000, date: '40 Min Ago', details: 'Matches typologies' },
-      { id: 'h4', layer: 4, name: 'Crypto Desk', type: 'Exchange', status: 'frozen', risk: 92, amount: 180000, date: '30 Min Ago', details: 'Hold applied by compliance' },
-      { id: 'h5', layer: 5, name: 'Mule Wallet', type: 'Wallet', status: 'suspect', risk: 90, amount: 175000, date: '20 Min Ago', details: 'P2P Mixing detected' },
-      { id: 'h6', layer: 6, name: 'Offshore Cashout', type: 'Cashout', status: 'blocked', risk: 100, amount: 175000, date: '10 Min Ago', details: 'Action blocked securely' }
+      { id: 'h0', layer: 0, name: 'Neha Gupta', type: 'Origin', status: 'suspect', risk: 85, amount: 200000 * 83, date: '1 Hr Ago', details: 'Unusual spike in transfers' },
+      { id: 'h1', layer: 1, name: 'Arjun Mehta', type: 'Intermediary', status: 'safe', risk: 20, amount: 195000 * 83, date: '50 Min Ago', details: 'Known associate' },
+      { id: 'h2', layer: 2, name: 'Proxy Account', type: 'Proxy', status: 'safe', risk: 35, amount: 190000 * 83, date: '45 Min Ago', details: 'Recent account creation' },
+      { id: 'h3', layer: 3, name: 'Shell Entity One', type: 'Company', status: 'suspect', risk: 88, amount: 185000 * 83, date: '40 Min Ago', details: 'Matches typologies' },
+      { id: 'h4', layer: 4, name: 'Crypto Desk', type: 'Exchange', status: 'frozen', risk: 92, amount: 180000 * 83, date: '30 Min Ago', details: 'Hold applied by compliance' },
+      { id: 'h5', layer: 5, name: 'Mule Wallet', type: 'Wallet', status: 'suspect', risk: 90, amount: 175000 * 83, date: '20 Min Ago', details: 'P2P Mixing detected' },
+      { id: 'h6', layer: 6, name: 'Offshore Cashout', type: 'Cashout', status: 'blocked', risk: 100, amount: 175000 * 83, date: '10 Min Ago', details: 'Action blocked securely' }
     ];
-    for (let i = 0; i < 6; i++) addEdge(`h${i}`, `h${i+1}`, 180000 - (i*5000), 'Wire Transfer');
+    for (let i = 0; i < 6; i++) addEdge(`h${i}`, `h${i+1}`, (180000 - (i*5000)) * 83, 'Wire Transfer');
     
   } else if (bankId === 'icici') {
     // Branching
     nodes = [
-      { id: 'i0', layer: 0, name: 'Rohan Das', type: 'Origin', status: 'safe', risk: 40, amount: 800000, date: '2 Hrs Ago', details: 'Corporate disembursement' },
-      { id: 'i1_1', layer: 1, name: 'Priya Singh', type: 'Mule', status: 'suspect', risk: 82, amount: 400000, date: '1 Hr Ago', details: 'Split transaction' },
-      { id: 'i1_2', layer: 1, name: 'Vikas Sharma', type: 'Mule', status: 'suspect', risk: 80, amount: 400000, date: '1 Hr Ago', details: 'Split transaction' },
-      { id: 'i2_1', layer: 2, name: 'Dummy Node A', type: 'Proxy', status: 'safe', risk: 30, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
-      { id: 'i2_2', layer: 2, name: 'Dummy Node B', type: 'Proxy', status: 'frozen', risk: 95, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
-      { id: 'i2_3', layer: 2, name: 'Dummy Node C', type: 'Proxy', status: 'safe', risk: 25, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
-      { id: 'i2_4', layer: 2, name: 'Dummy Node D', type: 'Proxy', status: 'safe', risk: 20, amount: 200000, date: '50 Min Ago', details: 'Domestic' },
-      { id: 'i3_1', layer: 3, name: 'Central Mixer', type: 'Mixer', status: 'suspect', risk: 89, amount: 400000, date: '40 Min Ago', details: 'Consolidation point' },
-      { id: 'i3_2', layer: 3, name: 'Secondary Mixer', type: 'Mixer', status: 'suspect', risk: 85, amount: 400000, date: '40 Min Ago', details: 'Consolidation point' },
-      { id: 'i4_1', layer: 4, name: 'Forex Desk M', type: 'Forex', status: 'safe', risk: 45, amount: 800000, date: '30 Min Ago', details: 'International conversion' },
-      { id: 'i5_1', layer: 5, name: 'Overseas Acc 1', type: 'Bank', status: 'suspect', risk: 75, amount: 400000, date: '20 Min Ago', details: 'High risk jurisdiction' },
-      { id: 'i5_2', layer: 5, name: 'Overseas Acc 2', type: 'Bank', status: 'suspect', risk: 78, amount: 400000, date: '20 Min Ago', details: 'High risk jurisdiction' },
-      { id: 'i6_1', layer: 6, name: 'Final Ultimate', type: 'Cashout', status: 'blocked', risk: 99, amount: 800000, date: 'Just Now', details: 'Intercepted before withdraw' }
+      { id: 'i0', layer: 0, name: 'Rohan Das', type: 'Origin', status: 'safe', risk: 40, amount: 800000 * 83, date: '2 Hrs Ago', details: 'Corporate disembursement' },
+      { id: 'i1_1', layer: 1, name: 'Priya Singh', type: 'Mule', status: 'suspect', risk: 82, amount: 400000 * 83, date: '1 Hr Ago', details: 'Split transaction' },
+      { id: 'i1_2', layer: 1, name: 'Vikas Sharma', type: 'Mule', status: 'suspect', risk: 80, amount: 400000 * 83, date: '1 Hr Ago', details: 'Split transaction' },
+      { id: 'i2_1', layer: 2, name: 'Dummy Node A', type: 'Proxy', status: 'safe', risk: 30, amount: 200000 * 83, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_2', layer: 2, name: 'Dummy Node B', type: 'Proxy', status: 'frozen', risk: 95, amount: 200000 * 83, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_3', layer: 2, name: 'Dummy Node C', type: 'Proxy', status: 'safe', risk: 25, amount: 200000 * 83, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i2_4', layer: 2, name: 'Dummy Node D', type: 'Proxy', status: 'safe', risk: 20, amount: 200000 * 83, date: '50 Min Ago', details: 'Domestic' },
+      { id: 'i3_1', layer: 3, name: 'Central Mixer', type: 'Mixer', status: 'suspect', risk: 89, amount: 400000 * 83, date: '40 Min Ago', details: 'Consolidation point' },
+      { id: 'i3_2', layer: 3, name: 'Secondary Mixer', type: 'Mixer', status: 'suspect', risk: 85, amount: 400000 * 83, date: '40 Min Ago', details: 'Consolidation point' },
+      { id: 'i4_1', layer: 4, name: 'Forex Desk M', type: 'Forex', status: 'safe', risk: 45, amount: 800000 * 83, date: '30 Min Ago', details: 'International conversion' },
+      { id: 'i5_1', layer: 5, name: 'Overseas Acc 1', type: 'Bank', status: 'suspect', risk: 75, amount: 400000 * 83, date: '20 Min Ago', details: 'High risk jurisdiction' },
+      { id: 'i5_2', layer: 5, name: 'Overseas Acc 2', type: 'Bank', status: 'suspect', risk: 78, amount: 400000 * 83, date: '20 Min Ago', details: 'High risk jurisdiction' },
+      { id: 'i6_1', layer: 6, name: 'Final Ultimate', type: 'Cashout', status: 'blocked', risk: 99, amount: 800000 * 83, date: 'Just Now', details: 'Intercepted before withdraw' }
     ];
-    addEdge('i0', 'i1_1', 400000, 'Transfer'); addEdge('i0', 'i1_2', 400000, 'Transfer');
-    addEdge('i1_1', 'i2_1', 200000, 'Split'); addEdge('i1_1', 'i2_2', 200000, 'Split');
-    addEdge('i1_2', 'i2_3', 200000, 'Split'); addEdge('i1_2', 'i2_4', 200000, 'Split');
-    addEdge('i2_1', 'i3_1', 200000, 'Consolidate'); addEdge('i2_2', 'i3_1', 200000, 'Consolidate');
-    addEdge('i2_3', 'i3_2', 200000, 'Consolidate'); addEdge('i2_4', 'i3_2', 200000, 'Consolidate');
-    addEdge('i3_1', 'i4_1', 400000, 'Forex Tx'); addEdge('i3_2', 'i4_1', 400000, 'Forex Tx');
-    addEdge('i4_1', 'i5_1', 400000, 'Cross-Border'); addEdge('i4_1', 'i5_2', 400000, 'Cross-Border');
-    addEdge('i5_1', 'i6_1', 400000, 'Cashout'); addEdge('i5_2', 'i6_1', 400000, 'Cashout');
+    addEdge('i0', 'i1_1', 400000 * 83, 'Transfer'); addEdge('i0', 'i1_2', 400000 * 83, 'Transfer');
+    addEdge('i1_1', 'i2_1', 200000 * 83, 'Split'); addEdge('i1_1', 'i2_2', 200000 * 83, 'Split');
+    addEdge('i1_2', 'i2_3', 200000 * 83, 'Split'); addEdge('i1_2', 'i2_4', 200000 * 83, 'Split');
+    addEdge('i2_1', 'i3_1', 200000 * 83, 'Consolidate'); addEdge('i2_2', 'i3_1', 200000 * 83, 'Consolidate');
+    addEdge('i2_3', 'i3_2', 200000 * 83, 'Consolidate'); addEdge('i2_4', 'i3_2', 200000 * 83, 'Consolidate');
+    addEdge('i3_1', 'i4_1', 400000 * 83, 'Forex Tx'); addEdge('i3_2', 'i4_1', 400000 * 83, 'Forex Tx');
+    addEdge('i4_1', 'i5_1', 400000 * 83, 'Cross-Border'); addEdge('i4_1', 'i5_2', 400000 * 83, 'Cross-Border');
+    addEdge('i5_1', 'i6_1', 400000 * 83, 'Cashout'); addEdge('i5_2', 'i6_1', 400000 * 83, 'Cashout');
     
   } else {
     // SBI / Default Circular
     nodes = [
-      { id: 's0_1', layer: 0, name: 'Rahul Sharma', type: 'Origin', status: 'suspect', risk: 85, amount: 150000, date: 'Just Now', details: 'Unusual volume' },
-      { id: 's0_2', layer: 0, name: 'Amit Verma', type: 'Origin', status: 'safe', risk: 30, amount: 50000, date: 'Just Now', details: 'Regular salary' },
-      { id: 's1_1', layer: 1, name: 'Shell Entity A', type: 'Company', status: 'suspect', risk: 90, amount: 100000, date: '1 Hr Ago', details: 'No trading history' },
-      { id: 's1_2', layer: 1, name: 'Local Business', type: 'Business', status: 'safe', risk: 15, amount: 100000, date: '2 Hrs Ago', details: 'Vendor payment' },
-      { id: 's2_1', layer: 2, name: 'Crypto Converter', type: 'Exchange', status: 'suspect', risk: 82, amount: 200000, date: '3 Hrs Ago', details: 'Fast swap detected' },
-      { id: 's3_1', layer: 3, name: 'Web Mixer', type: 'Mixer', status: 'frozen', risk: 98, amount: 200000, date: '4 Hrs Ago', details: 'Assets frozen by court' },
-      { id: 's4_1', layer: 4, name: 'Proxy Offshore 1', type: 'Proxy', status: 'suspect', risk: 75, amount: 100000, date: '5 Hrs Ago', details: 'Funnel component' },
-      { id: 's4_2', layer: 4, name: 'Proxy Offshore 2', type: 'Proxy', status: 'suspect', risk: 78, amount: 100000, date: '5 Hrs Ago', details: 'Funnel component' },
-      { id: 's5_1', layer: 5, name: 'Dark Vault', type: 'Wallet', status: 'suspect', risk: 88, amount: 200000, date: '6 Hrs Ago', details: 'Consolidation' },
-      { id: 's6_1', layer: 6, name: 'Terminal Cashout', type: 'Cashout', status: 'blocked', risk: 99, amount: 200000, date: '7 Hrs Ago', details: 'Blocked by firewall' }
+      { id: 's0_1', layer: 0, name: 'Rahul Sharma', type: 'Origin', status: 'suspect', risk: 85, amount: 150000 * 83, date: 'Just Now', details: 'Unusual volume' },
+      { id: 's0_2', layer: 0, name: 'Amit Verma', type: 'Origin', status: 'safe', risk: 30, amount: 50000 * 83, date: 'Just Now', details: 'Regular salary' },
+      { id: 's1_1', layer: 1, name: 'Shell Entity A', type: 'Company', status: 'suspect', risk: 90, amount: 100000 * 83, date: '1 Hr Ago', details: 'No trading history' },
+      { id: 's1_2', layer: 1, name: 'Local Business', type: 'Business', status: 'safe', risk: 15, amount: 100000 * 83, date: '2 Hrs Ago', details: 'Vendor payment' },
+      { id: 's2_1', layer: 2, name: 'Crypto Converter', type: 'Exchange', status: 'suspect', risk: 82, amount: 200000 * 83, date: '3 Hrs Ago', details: 'Fast swap detected' },
+      { id: 's3_1', layer: 3, name: 'Web Mixer', type: 'Mixer', status: 'frozen', risk: 98, amount: 200000 * 83, date: '4 Hrs Ago', details: 'Assets frozen by court' },
+      { id: 's4_1', layer: 4, name: 'Proxy Offshore 1', type: 'Proxy', status: 'suspect', risk: 75, amount: 100000 * 83, date: '5 Hrs Ago', details: 'Funnel component' },
+      { id: 's4_2', layer: 4, name: 'Proxy Offshore 2', type: 'Proxy', status: 'suspect', risk: 78, amount: 100000 * 83, date: '5 Hrs Ago', details: 'Funnel component' },
+      { id: 's5_1', layer: 5, name: 'Dark Vault', type: 'Wallet', status: 'suspect', risk: 88, amount: 200000 * 83, date: '6 Hrs Ago', details: 'Consolidation' },
+      { id: 's6_1', layer: 6, name: 'Terminal Cashout', type: 'Cashout', status: 'blocked', risk: 99, amount: 200000 * 83, date: '7 Hrs Ago', details: 'Blocked by firewall' }
     ];
-    addEdge('s0_1', 's1_1', 100000, 'Transfer'); addEdge('s0_1', 's1_2', 50000, 'Transfer');
-    addEdge('s0_2', 's1_2', 50000, 'Transfer');
-    addEdge('s1_1', 's2_1', 100000, 'Crypto Buy'); addEdge('s1_2', 's2_1', 100000, 'Crypto Buy');
-    addEdge('s2_1', 's3_1', 200000, 'Mixer Feed');
-    addEdge('s3_1', 's4_1', 100000, 'Distribution'); addEdge('s3_1', 's4_2', 100000, 'Distribution');
-    addEdge('s4_1', 's5_1', 100000, 'Re-combine'); addEdge('s4_2', 's5_1', 100000, 'Re-combine');
-    addEdge('s5_1', 's6_1', 200000, 'Attempted Exit');
+    addEdge('s0_1', 's1_1', 100000 * 83, 'Transfer'); addEdge('s0_1', 's1_2', 50000 * 83, 'Transfer');
+    addEdge('s0_2', 's1_2', 50000 * 83, 'Transfer');
+    addEdge('s1_1', 's2_1', 100000 * 83, 'Crypto Buy'); addEdge('s1_2', 's2_1', 100000 * 83, 'Crypto Buy');
+    addEdge('s2_1', 's3_1', 200000 * 83, 'Mixer Feed');
+    addEdge('s3_1', 's4_1', 100000 * 83, 'Distribution'); addEdge('s3_1', 's4_2', 100000 * 83, 'Distribution');
+    addEdge('s4_1', 's5_1', 100000 * 83, 'Re-combine'); addEdge('s4_2', 's5_1', 100000 * 83, 'Re-combine');
+    addEdge('s5_1', 's6_1', 200000 * 83, 'Attempted Exit');
   }
 
   return { nodes, edges };
@@ -206,7 +206,7 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
           <span className="node-type">{node.type}</span>
         </div>
         <div className={`node-name ${node.status === 'blocked' ? 'striken-danger' : node.status === 'frozen' ? 'striken' : ''}`}>{node.name}</div>
-        <div className="node-amount">${node.amount.toLocaleString()}</div>
+        <div className="node-amount">₹{node.amount.toLocaleString('en-IN')}</div>
         <div className="node-risk-bar">
           <div className="node-risk-fill" style={{ width: `${node.risk}%`, background: node.risk > 80 ? 'var(--danger)' : node.risk > 40 ? 'var(--warning)' : 'var(--success)' }}></div>
         </div>
@@ -375,7 +375,7 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
                   </div>
                   <div className="info-item">
                     <span>Flow Extracted</span>
-                    <strong>${selectedEntity.amount.toLocaleString()}</strong>
+                    <strong>₹{selectedEntity.amount.toLocaleString('en-IN')}</strong>
                   </div>
                   <div className="info-item">
                     <span>Last Activity</span>

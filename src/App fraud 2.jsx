@@ -142,7 +142,7 @@ const App = () => {
                 ['Customer Name', creditProfile.name],
                 ['AI Credit Score', creditProfile.score.toString()],
                 ['Model Recommendation', creditProfile.recommendation],
-                ['Suggested Limit', `$${creditProfile.limit.toLocaleString()}`],
+                ['Suggested Limit', `₹${creditProfile.limit.toLocaleString('en-IN')}`],
                 ['Interest Tier', creditProfile.tier]
             ],
             theme: 'grid',
@@ -756,7 +756,7 @@ const App = () => {
                                                 <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', margin: '12px 0' }}></div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                                                     <span style={{ color: 'var(--text-secondary)' }}>Suggested Limit:</span>
-                                                    <span style={{ color: 'white', fontWeight: '500' }}>${creditProfile.limit.toLocaleString()}</span>
+                                                    <span style={{ color: 'white', fontWeight: '500' }}>₹{creditProfile.limit.toLocaleString('en-IN')}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '8px' }}>
                                                     <span style={{ color: 'var(--text-secondary)' }}>Interest Tier:</span>

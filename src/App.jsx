@@ -337,17 +337,17 @@ const App = () => {
       baseScore = Math.floor(Math.random() * 150) + 500;
       recommendation = "Reject Application / High Risk";
       tier = "Tier 4 (Uninsurable)";
-      limit = Math.floor(Math.random() * 500);
+      limit = Math.floor(Math.random() * 500) * 83;
     } else if (entity.risk > 80) {
       baseScore = Math.floor(Math.random() * 100) + 650;
       recommendation = "Manual Review / Requires Guarantor";
       tier = "Tier 3 (Subprime)";
-      limit = Math.floor(Math.random() * 5000) + 1000;
+      limit = (Math.floor(Math.random() * 5000) + 1000) * 83;
     } else {
       baseScore = Math.floor(Math.random() * 100) + 750;
       recommendation = "Auto-Approve";
       tier = "Tier 1 (Prime)";
-      limit = Math.floor(Math.random() * 20000) + 10000;
+      limit = (Math.floor(Math.random() * 20000) + 10000) * 83;
     }
 
     const isLayering = entity.activity === 'Layering Activity';
@@ -1194,7 +1194,7 @@ const App = () => {
                         <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', margin: '12px 0' }}></div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>{t('Suggested Limit:')}</span>
-                          <span style={{ color: 'white', fontWeight: '500' }}>${creditProfile.limit.toLocaleString()}</span>
+                          <span style={{ color: 'white', fontWeight: '500' }}>₹{creditProfile.limit.toLocaleString('en-IN')}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '8px' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>{t('Interest Tier:')}</span>
