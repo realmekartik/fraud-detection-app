@@ -62,7 +62,20 @@ export const supportedBanks = [
   { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' }
 ];
 
-
+const generateHighRiskEntities = (bankId) => {
+  const prefix = bankId ? bankId.toUpperCase() : 'SYS';
+  return [
+    { id: `TXN-${prefix}-901A`, entity: 'Apex Global Trading LLC', type: 'Corporate Shell', risk: 99, activity: 'Multi-jurisdictional Layering ($2.4M)', avatar: 'AG' },
+    { id: `TXN-${prefix}-802B`, entity: 'Victor Reznov', type: 'Individual', risk: 95, activity: 'Evasion of Reporting Thresholds (Structuring)', avatar: 'VR' },
+    { id: `TXN-${prefix}-703C`, entity: 'Starlight Logistics Inc', type: 'Business', risk: 92, activity: 'Rapid Funneling to Offshore Accounts', avatar: 'SL' },
+    { id: `TXN-${prefix}-604D`, entity: 'Crimson Tech Pvt Ltd', type: 'High-Risk Corporate', risk: 89, activity: 'Inconsistent KYC / Ultimate Beneficial Owner Match', avatar: 'CT' },
+    { id: `TXN-${prefix}-505E`, entity: 'Evelyn Shaw', type: 'Individual', risk: 85, activity: 'High-Velocity Crypto Exchange Transfers', avatar: 'ES' },
+    { id: `TXN-${prefix}-406F`, entity: 'Orion Brokerage Partners', type: 'Financial Services', risk: 81, activity: 'Spike in Unverified Wire Transfers', avatar: 'OB' },
+    { id: `TXN-${prefix}-307G`, entity: 'Nexus Import/Export', type: 'Trade Business', risk: 78, activity: 'Trade-Based Money Laundering Flags', avatar: 'NX' },
+    { id: `TXN-${prefix}-208H`, entity: 'Elias Vance', type: 'Individual', risk: 74, activity: 'Account Takeover / Impossible Travel Geolocation', avatar: 'EV' },
+    { id: `TXN-${prefix}-109I`, entity: 'Meridian Group Holdings', type: 'Holding Company', risk: 71, activity: 'Sanctions List Proximity Match (OFAC)', avatar: 'MG' }
+  ];
+};
 
 const hiTranslations = {
   "Central Fraud Intelligence": "केंद्रीय धोखाधड़ी खुफिया",
@@ -369,27 +382,13 @@ const App = () => {
 
   // Fetch initial data & preload logos
   useEffect(() => {
-    const fetchLiveAnomalies = async () => {
-      try {
-        const res = await fetch(`${API_URL}/anomalies`);
-        const data = await res.json();
-        
-        // Add avatar generated on frontend
-        const anomaliesWithAvatar = data.map(a => ({
-          ...a,
-          avatar: a.entity ? a.entity.substring(0,2).toUpperCase() : 'UK'
-        }));
-        
-        setNetworkAnomalies(anomaliesWithAvatar);
-        if (anomaliesWithAvatar.length > 0) {
-          loadCreditProfile(anomaliesWithAvatar[0], false);
-        }
-      } catch (err) {
-        console.error("Failed to fetch anomalies", err);
-      }
-    };
-    
-    fetchLiveAnomalies();
+    // Generate dynamic anomalies locally instead of backend mock
+    const freshAnomalies = generateHighRiskEntities(selectedBank ? selectedBank.id : 'default');
+    setNetworkAnomalies(freshAnomalies);
+
+    if (freshAnomalies.length > 0) {
+      loadCreditProfile(freshAnomalies[0], false);
+    }
 
     // Preload logos
     supportedBanks.forEach(bank => {
@@ -405,7 +404,7 @@ const App = () => {
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'telemetry_update') {
-        const { time, transactions, flagged, blocked, newAnomalies } = message.data;
+        const { time, transactions, flagged, blocked } = message.data;
 
         setCurrentTelemetry({ transactions, flagged, blocked });
 
@@ -413,25 +412,6 @@ const App = () => {
           const newData = [...prev.slice(1), { time, transactions, flagged, blocked }];
           return newData;
         });
-
-        if (newAnomalies && newAnomalies.length > 0) {
-            setNetworkAnomalies(prev => {
-                const mappedNew = newAnomalies.map(a => ({
-                    id: a.id,
-                    entity: a.fromEntity,
-                    type: a.activity,
-                    risk: a.riskScore,
-                    status: a.status,
-                    amount: a.amount,
-                    currency: a.currency,
-                    txType: a.type,
-                    bankCode: a.fromIFSC.substring(0,4),
-                    avatar: a.fromEntity ? a.fromEntity.substring(0,2).toUpperCase() : 'UK'
-                }));
-                const combined = [...mappedNew, ...prev];
-                return combined.slice(0, 50); // Keep max 50
-            });
-        }
       }
     };
 

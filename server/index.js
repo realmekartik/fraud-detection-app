@@ -3,10 +3,6 @@ const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const Database = require('better-sqlite3');
 const http = require('http');
-const { generateTransaction } = require('./indianBankSimulator');
-
-let simulatedTransactions = [];
-let simulatedAnomalies = [];
 
 const app = express();
 const server = http.createServer(app);
@@ -54,6 +50,17 @@ db.exec(`
     search_input TEXT,
     timestamp TEXT
   );
+  
+  INSERT INTO anomalies (id, entity, type, risk, status) VALUES 
+  ('TXN-8942', 'Unusual Patterns', 'Transaction Pattern Analysis', 98, 'Blocked'),
+  ('TXN-8941', 'Untrusted Origin', 'Location & Device Changes', 92, 'Investigating'),
+  ('TXN-8938', 'Smurfing Network', 'Unusual Money Flow', 85, 'Investigating'),
+  ('TXN-8935', 'Hidden Fraud Link', 'Machine Learning Models', 71, 'Flagged'),
+  ('TXN-8934', 'Limit Breachers', 'Rule-Based Triggers', 65, 'Investigating'),
+  ('TXN-8933', 'Student Wealth Acct', 'KYC & Profile Mismatch', 60, 'Flagged'),
+  ('TXN-8932', 'Suspicious Sub-node', 'Network Analysis', 55, 'Blocked'),
+  ('TXN-8931', 'Rapid Funnel Pvt', 'Velocity Checks', 50, 'Investigating'),
+  ('TXN-8930', 'AML Non-Compliant', 'Regulatory Compliance', 45, 'Flagged');
 
   INSERT INTO users (username, password, bank_id, branch_name, city) VALUES 
   ('admin@sbi.co.in', 'password', 'sbi', 'Connaught Place', 'New Delhi'),
@@ -226,10 +233,8 @@ app.post('/api/freeze-tracker/log', (req, res) => {
 });
 
 app.get('/api/anomalies', (req, res) => {
-  // Merge live dynamic anomalies and any db saved ones just in case
   const stmt = db.prepare('SELECT * FROM anomalies ORDER BY risk DESC');
-  const dbAnomalies = stmt.all();
-  res.json([...simulatedAnomalies, ...dbAnomalies].sort((a,b) => b.risk - a.risk).slice(0, 50));
+  res.json(stmt.all());
 });
 
 app.get('/api/credit/:id', async (req, res) => {
@@ -343,43 +348,18 @@ app.post('/api/kyc/submit', (req, res) => {
   }
 });
 
-let baseTransactions = 250000;
+// Real-Time Telemetry over WebSockets
+let baseTransactions = 25000;
 let baseFlagged = 1300;
 
 wss.on('connection', (ws) => {
-  console.log('Client connected for real-time banking telemetry.');
+  console.log('Client connected for real-time telemetry.');
   
   // Send data periodically
   const interval = setInterval(() => {
-    // Generate new batches of transactions
-    const txnBatch = [];
-    for(let i=0; i<Math.floor(Math.random()*15)+5; i++) {
-        txnBatch.push(generateTransaction());
-    }
-
-    const unmappedAnomalies = txnBatch.filter(t => t.isAnomaly);
-    
-    unmappedAnomalies.forEach(a => {
-        // Map to expected UI format
-        simulatedAnomalies.unshift({
-            id: a.id,
-            entity: a.fromEntity,
-            type: a.activity,
-            risk: a.riskScore,
-            status: a.status,
-            amount: a.amount,
-            currency: a.currency,
-            txType: a.type,
-            bankCode: a.fromIFSC.substring(0,4)
-        });
-    });
-
-    if(simulatedAnomalies.length > 200) {
-        simulatedAnomalies = simulatedAnomalies.slice(0, 200);
-    }
-    
-    baseTransactions += txnBatch.length;
-    baseFlagged += unmappedAnomalies.length;
+    // Generate some random fluctuation
+    baseTransactions += Math.floor(Math.random() * 200) - 90;
+    baseFlagged += Math.floor(Math.random() * 15) - 6;
     
     ws.send(JSON.stringify({
       type: 'telemetry_update',
@@ -387,12 +367,10 @@ wss.on('connection', (ws) => {
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
         transactions: baseTransactions,
         flagged: baseFlagged,
-        blocked: Math.floor(baseFlagged * 0.7),
-        latestTransactions: txnBatch,
-        newAnomalies: unmappedAnomalies
+        blocked: Math.floor(baseFlagged * 0.7) // Roughly 70% of flagged get blocked
       }
     }));
-  }, 2500); // 2.5 second streaming tick
+  }, 3000); // Send updates every 3 seconds
 
   ws.on('close', () => {
     clearInterval(interval);
