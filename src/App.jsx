@@ -45,7 +45,7 @@ import EntityInvestigation from './EntityInvestigation';
 
 
 const API_URL = '/api';
-const WS_URL = 'wss://social-pigs-rest.loca.lt';
+const WS_URL = window.location.protocol === 'https:' ? `wss://${window.location.host}/ws` : `ws://${window.location.host}/ws`;
 
 export const supportedBanks = [
   { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
@@ -63,28 +63,18 @@ export const supportedBanks = [
 ];
 
 const generateHighRiskEntities = (bankId) => {
-  if (bankId === 'hdfc') {
-    return [
-      { id: 'TXN-8934', entity: 'Arjun Mehta', type: 'Individual', risk: 98, activity: 'Layering Activity', avatar: 'AM' },
-      { id: 'TXN-8112', entity: 'Shree Balaji Traders', type: 'Business', risk: 92, activity: 'Structuring', avatar: 'SB' },
-      { id: 'TXN-7944', entity: 'Horizon Exports Pvt', type: 'Corporate', risk: 85, activity: 'Velocity Anomaly', avatar: 'HE' },
-      { id: 'TXN-7231', entity: 'Manoj Tiwari', type: 'Individual', risk: 71, activity: 'Unusual Geo Activity', avatar: 'MT' }
-    ];
-  } else if (bankId === 'icici') {
-    return [
-      { id: 'TXN-9021', entity: 'Priya Sharma', type: 'Individual', risk: 96, activity: 'Layering Activity', avatar: 'PS' },
-      { id: 'TXN-8845', entity: 'Global Tech Solutions', type: 'Shell Company', risk: 91, activity: 'Rapid Funneling', avatar: 'GT' },
-      { id: 'TXN-8761', entity: 'Rahul Das', type: 'Individual', risk: 84, activity: 'Velocity Anomaly', avatar: 'RD' },
-      { id: 'TXN-8123', entity: 'Apex Logistics', type: 'Business', risk: 75, activity: 'Structuring', avatar: 'AL' }
-    ];
-  } else {
-    return [
-      { id: 'TXN-9912', entity: 'Rajesh Kumar', type: 'Individual', risk: 98, activity: 'Layering Activity', avatar: 'RK' },
-      { id: 'TXN-9421', entity: 'Neha Gupta', type: 'Individual', risk: 92, activity: 'Structuring', avatar: 'NG' },
-      { id: 'TXN-9102', entity: 'Venkatesh Enterprises', type: 'Business', risk: 85, activity: 'Velocity Anomaly', avatar: 'VE' },
-      { id: 'TXN-8654', entity: 'Aman Verma', type: 'Individual', risk: 71, activity: 'Unusual Geo Activity', avatar: 'AV' }
-    ];
-  }
+  const prefix = bankId ? bankId.toUpperCase() : 'SYS';
+  return [
+    { id: `TXN-${prefix}-01`, entity: 'Unusual Patterns', type: 'Business', risk: 99, activity: 'Transaction Pattern Analysis', avatar: 'TP' },
+    { id: `TXN-${prefix}-02`, entity: 'Untrusted Origin', type: 'Individual', risk: 95, activity: 'Location & Device Changes', avatar: 'LD' },
+    { id: `TXN-${prefix}-03`, entity: 'Smurfing Network', type: 'Business', risk: 92, activity: 'Unusual Money Flow', avatar: 'UM' },
+    { id: `TXN-${prefix}-04`, entity: 'Hidden Fraud Link', type: 'System Flag', risk: 89, activity: 'Machine Learning Models', avatar: 'ML' },
+    { id: `TXN-${prefix}-05`, entity: 'Limit Breachers', type: 'Corporate', risk: 85, activity: 'Rule-Based Triggers', avatar: 'RB' },
+    { id: `TXN-${prefix}-06`, entity: 'Student Wealth Acct', type: 'Individual', risk: 80, activity: 'KYC & Profile Mismatch', avatar: 'KY' },
+    { id: `TXN-${prefix}-07`, entity: 'Suspicious Sub-node', type: 'Shell Company', risk: 77, activity: 'Network Analysis', avatar: 'NA' },
+    { id: `TXN-${prefix}-08`, entity: 'Rapid Funnel Pvt', type: 'Business', risk: 73, activity: 'Velocity Checks', avatar: 'VC' },
+    { id: `TXN-${prefix}-09`, entity: 'AML Non-Compliant', type: 'Corporate', risk: 71, activity: 'Regulatory Compliance', avatar: 'RC' }
+  ];
 };
 
 const hiTranslations = {

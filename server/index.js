@@ -52,10 +52,15 @@ db.exec(`
   );
   
   INSERT INTO anomalies (id, entity, type, risk, status) VALUES 
-  ('TXN-8942', 'CryptoBridge Ltd', 'Layering', 98, 'Blocked'),
-  ('TXN-8941', 'Unknown Entity A', 'Structuring', 92, 'Investigating'),
-  ('TXN-8938', 'Global Trade Hub', 'Velocity Anomaly', 85, 'Investigating'),
-  ('TXN-8935', 'John Doe Account', 'Unusual Geo', 71, 'Flagged');
+  ('TXN-8942', 'Unusual Patterns', 'Transaction Pattern Analysis', 98, 'Blocked'),
+  ('TXN-8941', 'Untrusted Origin', 'Location & Device Changes', 92, 'Investigating'),
+  ('TXN-8938', 'Smurfing Network', 'Unusual Money Flow', 85, 'Investigating'),
+  ('TXN-8935', 'Hidden Fraud Link', 'Machine Learning Models', 71, 'Flagged'),
+  ('TXN-8934', 'Limit Breachers', 'Rule-Based Triggers', 65, 'Investigating'),
+  ('TXN-8933', 'Student Wealth Acct', 'KYC & Profile Mismatch', 60, 'Flagged'),
+  ('TXN-8932', 'Suspicious Sub-node', 'Network Analysis', 55, 'Blocked'),
+  ('TXN-8931', 'Rapid Funnel Pvt', 'Velocity Checks', 50, 'Investigating'),
+  ('TXN-8930', 'AML Non-Compliant', 'Regulatory Compliance', 45, 'Flagged');
 
   INSERT INTO users (username, password, bank_id, branch_name, city) VALUES 
   ('admin@sbi.co.in', 'password', 'sbi', 'Connaught Place', 'New Delhi'),
