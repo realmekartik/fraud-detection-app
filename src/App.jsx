@@ -20,7 +20,8 @@ import {
   Download,
   MessageCircle,
   Check,
-  RefreshCw
+  RefreshCw,
+  Map
 } from 'lucide-react';
 import {
   AreaChart,
@@ -44,6 +45,7 @@ import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
 import RedTeamSimulator from './RedTeamSimulator';
 import CounterfactualExplainer from './CounterfactualExplainer';
+import IndiaFraudHeatmap from './IndiaFraudHeatmap';
 
 
 
@@ -159,6 +161,28 @@ const App = () => {
   const [networkAnomalies, setNetworkAnomalies] = useState([]);
   const [creditProfile, setCreditProfile] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // ── Biometric state ──────────────────────────────────────────────────────────
+  const [bioScore, setBioScore] = useState(0);
+  const [bioMetrics, setBioMetrics] = useState({
+    avgKeystrokeLatency: 0, typingSpeed: 0, backspaceCount: 0,
+    pauseCount: 0, mouseVelocityVariance: 0, directionReversals: 0,
+    pasteDetected: false,
+  });
+  const [bioStatus, setBioStatus] = useState('idle'); // idle | normal | unusual | anomalous
+  const [supervisorOtp, setSupervisorOtp] = useState('');
+  const [otpError, setOtpError] = useState(false);
+  const [loginBlocked, setLoginBlocked] = useState(false);
+  const [loginWarning, setLoginWarning] = useState(false);
+  const [bioClearance, setBioClearance] = useState(null); // null | 'granted' | 'enhanced' | 'blocked'
+  const bioRef = useRef({
+    lastKeyTime: 0, keyLatencies: [], holdTimes: {}, backspaces: 0,
+    pauses: 0, charCount: 0, startTime: Date.now(),
+    mouseTimes: [], mouseVels: [], lastMouseX: 0, lastMouseY: 0,
+    lastMouseTime: 0, directions: [], lastDx: 0, lastDy: 0,
+    reversals: 0, pasteFlag: false,
+    pwHoverStart: 0, pwHoverTotal: 0,
+  });
 
   const [isSendingReport, setIsSendingReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
@@ -840,33 +864,217 @@ const App = () => {
     doc.save(`KYC_Report_${safeName}.pdf`);
   };
 
+  // ── Biometric helpers ────────────────────────────────────────────────────────
+  const calcBioScore = () => {
+    const b = bioRef.current;
+    if (b.keyLatencies.length === 0) return 0;
+    const avg = b.keyLatencies.reduce((a, v) => a + v, 0) / b.keyLatencies.length;
+    const charCount = b.charCount || 1;
+    const elapsed = (Date.now() - b.startTime) / 1000 || 1;
+    const typingSpeed = charCount / elapsed;
+    const vels = b.mouseVels;
+    const meanV = vels.length ? vels.reduce((a, v) => a + v, 0) / vels.length : 0;
+    const varV = vels.length > 1
+      ? vels.reduce((a, v) => a + (v - meanV) ** 2, 0) / vels.length : 999;
+
+    let score = 0;
+    if (avg < 50) score += 25;
+    if (avg > 800) score += 15;
+    if (b.backspaces === 0 && charCount > 8) score += 20;
+    if (b.pauses > 5) score += 10;
+    if (varV < 10) score += 20;
+    if (b.reversals < 2) score += 15;
+    if (b.pasteFlag) score += 35;
+    score = Math.min(100, score);
+
+    const metrics = {
+      avgKeystrokeLatency: Math.round(avg),
+      typingSpeed: Math.round(typingSpeed * 10) / 10,
+      backspaceCount: b.backspaces,
+      pauseCount: b.pauses,
+      mouseVelocityVariance: Math.round(varV * 10) / 10,
+      directionReversals: b.reversals,
+      pasteDetected: b.pasteFlag,
+    };
+    setBioMetrics(metrics);
+    setBioScore(score);
+    if (score <= 30) setBioStatus('normal');
+    else if (score <= 60) setBioStatus('unusual');
+    else setBioStatus('anomalous');
+    return { score, metrics };
+  };
+
+  const handleBioKeyDown = (e) => {
+    const b = bioRef.current;
+    const now = Date.now();
+    if (b.lastKeyTime) {
+      const lat = now - b.lastKeyTime;
+      if (lat > 500) b.pauses++;
+      b.keyLatencies.push(lat);
+    }
+    b.lastKeyTime = now;
+    b.holdTimes[e.key] = now;
+    if (e.key === 'Backspace') b.backspaces++;
+    else b.charCount++;
+  };
+
+  const handleBioKeyUp = (e) => {
+    // hold duration tracked if needed
+    calcBioScore();
+  };
+
+  const handleBioPaste = () => {
+    bioRef.current.pasteFlag = true;
+    calcBioScore();
+  };
+
+  const handleBioMouseMove = (e) => {
+    const b = bioRef.current;
+    const now = Date.now();
+    if (b.lastMouseTime) {
+      const dt = (now - b.lastMouseTime) / 1000 || 0.001;
+      const dx = e.clientX - b.lastMouseX;
+      const dy = e.clientY - b.lastMouseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const vel = dist / dt;
+      b.mouseVels.push(vel);
+      if (b.mouseVels.length > 50) b.mouseVels.shift();
+      // direction reversals
+      if (b.lastDx !== 0 && Math.sign(dx) !== Math.sign(b.lastDx)) b.reversals++;
+      b.lastDx = dx; b.lastDy = dy;
+    }
+    b.lastMouseX = e.clientX; b.lastMouseY = e.clientY;
+    b.lastMouseTime = now;
+  };
+
+  const resetBiometrics = () => {
+    bioRef.current = {
+      lastKeyTime: 0, keyLatencies: [], holdTimes: {}, backspaces: 0,
+      pauses: 0, charCount: 0, startTime: Date.now(),
+      mouseTimes: [], mouseVels: [], lastMouseX: 0, lastMouseY: 0,
+      lastMouseTime: 0, directions: [], lastDx: 0, lastDy: 0,
+      reversals: 0, pasteFlag: false,
+      pwHoverStart: 0, pwHoverTotal: 0,
+    };
+    setBioScore(0); setBioMetrics({ avgKeystrokeLatency: 0, typingSpeed: 0, backspaceCount: 0, pauseCount: 0, mouseVelocityVariance: 0, directionReversals: 0, pasteDetected: false });
+    setBioStatus('idle'); setLoginBlocked(false); setLoginWarning(false); setBioClearance(null);
+    setSupervisorOtp(''); setOtpError(false);
+  };
+
+  // ── Demo simulators ──────────────────────────────────────────────────────────
+  const simulateNormalUser = (usernameRef, passwordRef) => {
+    resetBiometrics();
+    const text = 'admin@sbi.co.in';
+    const pass = 'SecurePass123';
+    let ui = 0, pi = 0;
+    const b = bioRef.current;
+    b.startTime = Date.now();
+    const iv = setInterval(() => {
+      const now = Date.now();
+      if (ui < text.length) {
+        if (b.lastKeyTime) b.keyLatencies.push(now - b.lastKeyTime + Math.random() * 30);
+        b.lastKeyTime = now;
+        b.charCount++;
+        b.reversals = 4;
+        if (usernameRef.current) usernameRef.current.value = text.slice(0, ++ui);
+      } else if (pi < pass.length) {
+        const lat = 80 + Math.random() * 60;
+        b.keyLatencies.push(lat);
+        b.lastKeyTime = now;
+        b.charCount++;
+        b.reversals = 5;
+        b.mouseVels = Array.from({ length: 20 }, () => 50 + Math.random() * 200);
+        if (passwordRef.current) passwordRef.current.value = pass.slice(0, ++pi);
+        calcBioScore();
+      } else {
+        clearInterval(iv);
+        calcBioScore();
+      }
+    }, 90);
+  };
+
+  const simulateBotAttack = (usernameRef, passwordRef) => {
+    resetBiometrics();
+    if (usernameRef.current) usernameRef.current.value = 'admin@sbi.co.in';
+    if (passwordRef.current) passwordRef.current.value = 'password';
+    const b = bioRef.current;
+    b.keyLatencies = [10, 12, 11, 10, 9, 13, 10];
+    b.backspaces = 0; b.charCount = 22; b.pauses = 0;
+    b.mouseVels = Array.from({ length: 20 }, () => 0.5);
+    b.reversals = 0; b.pasteFlag = false;
+    calcBioScore();
+  };
+
+  const simulateCredentialStuffing = (usernameRef, passwordRef) => {
+    resetBiometrics();
+    if (usernameRef.current) usernameRef.current.value = 'stolen@victim.com';
+    if (passwordRef.current) passwordRef.current.value = 'leaked_password';
+    bioRef.current.pasteFlag = true;
+    bioRef.current.charCount = 20;
+    bioRef.current.keyLatencies = [8, 9];
+    bioRef.current.reversals = 0;
+    bioRef.current.mouseVels = [0.2, 0.3];
+    calcBioScore();
+  };
+
+  // ── Login handler (biometric-gated) ─────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!selectedBank) return;
 
-    // Assume form fields are ordered: 0 -> username, 1 -> password
-    const username = e.target[0].value;
-    const password = e.target[1].value;
+    const { score, metrics } = calcBioScore();
 
-    try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
+    // Compliance log
+    const logEntry = {
+      event: 'LOGIN_ATTEMPT',
+      timestamp: new Date().toISOString(),
+      bank: selectedBank?.name,
+      biometric_score: score,
+      risk_level: score <= 30 ? 'LOW' : score <= 60 ? 'MEDIUM' : 'HIGH',
+      paste_detected: metrics?.pasteDetected,
+      avg_keystroke_latency: `${metrics?.avgKeystrokeLatency}ms`,
+      action_taken: score <= 30 ? 'GRANTED' : score <= 60 ? 'ENHANCED_LOG' : 'BLOCKED',
+    };
+    console.log('%c[CFI Biometric Log]', 'color:#00f0ff;font-weight:bold', logEntry);
 
-      if (data.success) {
-        setCurrentUser(data.user);
+    if (score > 60) {
+      setLoginBlocked(true); setLoginWarning(false);
+      setBioClearance('blocked');
+      return;
+    }
+    if (score > 30) {
+      setLoginWarning(true); setBioClearance('enhanced');
+    }
+
+    const doLogin = async () => {
+      const username = e.target[0].value;
+      const password = e.target[1].value;
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setCurrentUser(data.user);
+          setIsAuthenticated(true);
+          if (score <= 30) setBioClearance('granted');
+          addToast(`Secure Connect: Verified ${data.user.branch_name} Branch node.`);
+        } else {
+          addToast('Invalid credentials, please try again.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        addToast('Server connection error for login.', 'error');
         setIsAuthenticated(true);
-        addToast(`Secure Connect: Verified ${data.user.branch_name} Branch node.`);
-      } else {
-        addToast("Invalid credentials, please try again.", 'error');
       }
-    } catch (error) {
-      console.error(error);
-      addToast("Server connection error for login.", 'error');
-      setIsAuthenticated(true); // Fallback
+    };
+
+    if (score > 30 && score <= 60) {
+      setTimeout(doLogin, 1500);
+    } else {
+      doLogin();
     }
   };
 
@@ -907,16 +1115,61 @@ const App = () => {
   ];
 
   if (!isAuthenticated) {
+    // Refs for demo simulator access to input DOM nodes
+    const usernameInputRef = React.createRef();
+    const passwordInputRef = React.createRef();
+
+    // Biometric visual helpers
+    const scoreColor = bioScore <= 30 ? '#34d399' : bioScore <= 60 ? '#fbbf24' : '#ef4444';
+    const statusText = bioStatus === 'idle' ? 'Awaiting input…'
+      : bioStatus === 'normal' ? 'Behavioral Pattern: Normal'
+      : bioStatus === 'unusual' ? 'Behavioral Pattern: Unusual'
+      : 'Behavioral Pattern: Anomalous';
+    const circumference = 2 * Math.PI * 42; // r=42
+    const dashOffset = circumference - (bioScore / 100) * circumference;
+
+    const rhythmLabel = () => {
+      if (bioStatus === 'idle') return '—';
+      if (bioMetrics.avgKeystrokeLatency < 50) return 'Scripted';
+      if (bioMetrics.avgKeystrokeLatency > 800) return 'Irregular';
+      return 'Normal';
+    };
+    const mouseConfidence = () => {
+      if (bioStatus === 'idle') return '—';
+      const v = bioMetrics.mouseVelocityVariance;
+      if (v < 10) return 'Low';
+      if (v < 100) return 'Medium';
+      return 'High';
+    };
+
     return (
       <>
         <ParticleBackground />
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+        <style>{`
+          @keyframes brainwave {
+            0%   { d: path('M0,15 C10,5 20,25 30,15 C40,5 50,25 60,15 C70,5 80,25 90,15 C100,5 110,25 120,15'); }
+            50%  { d: path('M0,15 C10,25 20,5 30,15 C40,25 50,5 60,15 C70,25 80,5 90,15 C100,25 110,5 120,15'); }
+            100% { d: path('M0,15 C10,5 20,25 30,15 C40,5 50,25 60,15 C70,5 80,25 90,15 C100,5 110,25 120,15'); }
+          }
+          @keyframes bioGaugeFill {
+            from { stroke-dashoffset: ${circumference}; }
+            to   { stroke-dashoffset: ${dashOffset}; }
+          }
+          @keyframes blink-badge { 0%,100%{opacity:1} 50%{opacity:0.4} }
+          .bio-wave-path { animation: brainwave 2.5s ease-in-out infinite; }
+        `}</style>
+
+        <div
+          onMouseMove={handleBioMouseMove}
+          style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', gap: '24px', padding: '20px', flexWrap: 'wrap' }}
+        >
+          {/* ── Login card ── */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             className="glass-panel"
-            style={{ width: '100%', maxWidth: '520px', padding: '40px' }}
+            style={{ width: '100%', maxWidth: '480px', padding: '40px', flexShrink: 0 }}
           >
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <ShieldAlert color="var(--accent-cyan)" size={48} style={{ margin: '0 auto 16px' }} />
@@ -931,30 +1184,13 @@ const App = () => {
                   {supportedBanks.map(bank => (
                     <button
                       key={bank.id}
-                      onClick={() => setSelectedBank(bank)}
-                      style={{
-                        padding: '12px 8px',
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = bank.color }}
-                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                      onClick={() => { setSelectedBank(bank); resetBiometrics(); }}
+                      style={{ padding: '12px 8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = bank.color; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                     >
-                      <div style={{ width: '76px', height: '76px', background: '#fff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: `2px solid rgba(255,255,255,0.1)` }}>
-                        <img
-                          src={bank.logo}
-                          alt={bank.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
-                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                        />
+                      <div style={{ width: '76px', height: '76px', background: '#fff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)' }}>
+                        <img src={bank.logo} alt={bank.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                         <span style={{ display: 'none', color: '#333', fontWeight: 'bold', fontSize: '20px', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{bank.name.substring(0, 2)}</span>
                       </div>
                       <span style={{ fontWeight: 500, fontSize: '11px', textAlign: 'center', color: 'white' }}>{bank.name}</span>
@@ -971,22 +1207,104 @@ const App = () => {
                     </div>
                     {selectedBank.name} Portal
                   </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedBank(null)}>Change Bank</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setSelectedBank(null); resetBiometrics(); }}>Change Bank</span>
                 </div>
+
+                {/* Unusual warning banner */}
+                {loginWarning && !loginBlocked && (
+                  <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '8px', fontSize: '12px', color: '#fbbf24', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '16px' }}>⚠️</span>
+                    <span>Unusual input pattern detected. Proceeding with enhanced logging.</span>
+                  </div>
+                )}
+
+                {/* Blocked alert + supervisor OTP */}
+                {loginBlocked && (
+                  <div style={{ marginBottom: '16px', padding: '14px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '10px' }}>
+                    <div style={{ fontSize: '13px', color: '#ef4444', fontWeight: '600', marginBottom: '6px' }}>🚫 Anomalous operator behavior detected</div>
+                    <div style={{ fontSize: '12px', color: '#fca5a5', marginBottom: '14px' }}>Access requires supervisor authorization. Enter 6-digit OTP.</div>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="Supervisor OTP"
+                      value={supervisorOtp}
+                      onChange={(e) => { setSupervisorOtp(e.target.value); setOtpError(false); }}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${otpError ? '#ef4444' : 'rgba(239,68,68,0.4)'}`, color: 'white', outline: 'none', letterSpacing: '6px', textAlign: 'center', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}
+                    />
+                    {otpError && <div style={{ color: '#ef4444', fontSize: '11px', textAlign: 'center' }}>Incorrect OTP. Try again.</div>}
+                    <button
+                      onClick={() => {
+                        if (supervisorOtp === '221133') { setLoginBlocked(false); setBioClearance('enhanced'); setLoginWarning(true);}
+                        else setOtpError(true);
+                      }}
+                      style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', color: '#ef4444', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                    >Verify Supervisor OTP</button>
+                  </div>
+                )}
+
+                {/* Biometric clearance flash */}
+                {bioClearance === 'granted' && (
+                  <div style={{ marginBottom: '10px', padding: '8px 14px', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '8px', fontSize: '12px', color: '#34d399', textAlign: 'center' }}>✅ Biometric clearance granted</div>
+                )}
+
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>Bank Official Username</label>
-                    <input type="text" placeholder={`e.g. employee@${selectedBank.id}.co.in`} defaultValue={`admin@${selectedBank.id}.co.in`} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} required />
+                    <input
+                      ref={usernameInputRef}
+                      type="text"
+                      placeholder={`e.g. employee@${selectedBank.id}.co.in`}
+                      defaultValue={`admin@${selectedBank.id}.co.in`}
+                      onKeyDown={handleBioKeyDown}
+                      onKeyUp={handleBioKeyUp}
+                      onPaste={handleBioPaste}
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }}
+                      required
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>Security Phase Key</label>
-                    <input type="password" placeholder="••••••••" defaultValue="password" style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }} required />
+                    <input
+                      ref={passwordInputRef}
+                      type="password"
+                      placeholder="••••••••"
+                      defaultValue="password"
+                      onKeyDown={handleBioKeyDown}
+                      onKeyUp={handleBioKeyUp}
+                      onPaste={handleBioPaste}
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', color: 'white', outline: 'none' }}
+                      required
+                    />
                   </div>
 
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '14px' }}>
-                    Secure Login to Network
-                  </button>
+                  {!loginBlocked && (
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '14px', background: loginWarning ? 'rgba(251,191,36,0.2)' : undefined, borderColor: loginWarning ? 'rgba(251,191,36,0.5)' : undefined, color: loginWarning ? '#fbbf24' : undefined }}>
+                      {loginWarning ? '⏳ Enhanced verification…' : 'Secure Login to Network'}
+                    </button>
+                  )}
                 </form>
+
+                {/* ── Demo buttons ── */}
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                  <div style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ padding: '1px 6px', background: 'rgba(168,85,247,0.2)', color: '#a855f7', borderRadius: '4px', fontWeight: '700', fontSize: '9px' }}>DEMO</span>
+                    Biometric Simulation
+                  </div>
+                  {[
+                    { label: '✅  Simulate Normal User', fn: () => simulateNormalUser(usernameInputRef, passwordInputRef), color: '#34d399' },
+                    { label: '🤖  Simulate Bot Attack', fn: () => simulateBotAttack(usernameInputRef, passwordInputRef), color: '#f87171' },
+                    { label: '📋  Simulate Credential Stuffing', fn: () => simulateCredentialStuffing(usernameInputRef, passwordInputRef), color: '#fb923c' },
+                  ].map(({ label, fn, color }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={fn}
+                      style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}30`, color, borderRadius: '8px', fontSize: '12px', cursor: 'pointer', textAlign: 'left', transition: 'background 0.2s', fontFamily: 'Inter, sans-serif' }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                    >{label}</button>
+                  ))}
+                </div>
               </motion.div>
             )}
 
@@ -994,6 +1312,95 @@ const App = () => {
               <FileKey size={14} /> FIPS 140-2 Compliant Node
             </div>
           </motion.div>
+
+          {/* ── Biometric panel (hidden when no bank selected) ── */}
+          {selectedBank && (
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="hidden md:flex flex-col"
+              style={{
+                width: '240px', flexShrink: 0,
+                background: 'rgba(15,23,42,0.7)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(0,240,255,0.2)',
+                borderRadius: '20px',
+                padding: '22px 18px',
+                gap: '16px',
+              }}
+            >
+              {/* Header */}
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#00f0ff', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🧠 Operator Biometric Verification
+              </div>
+
+              {/* SVG gauge */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+                  <circle
+                    cx="55" cy="55" r="42"
+                    fill="none"
+                    stroke={scoreColor}
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={dashOffset}
+                    transform="rotate(-90 55 55)"
+                    style={{ transition: 'stroke-dashoffset 0.6s ease, stroke 0.4s ease' }}
+                  />
+                  <text x="55" y="51" textAnchor="middle" fill={scoreColor} fontSize="22" fontWeight="800" fontFamily="Inter,sans-serif">{bioScore}</text>
+                  <text x="55" y="66" textAnchor="middle" fill="#64748b" fontSize="9" fontFamily="Inter,sans-serif">RISK SCORE</text>
+                </svg>
+                <div style={{ fontSize: '11px', fontWeight: '600', color: scoreColor, textAlign: 'center', minHeight: '28px', transition: 'color 0.3s' }}>
+                  {statusText}
+                </div>
+              </div>
+
+              {/* Metrics rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+                {[
+                  { label: 'Typing Rhythm', value: rhythmLabel() },
+                  { label: 'Input Velocity', value: bioStatus === 'idle' ? '—' : `${bioMetrics.typingSpeed} ch/s` },
+                  { label: 'Mouse Confidence', value: mouseConfidence() },
+                  { label: 'Paste Detection', value: bioMetrics.pasteDetected ? 'FLAGGED ⚠️' : 'Clean', flagged: bioMetrics.pasteDetected },
+                ].map(({ label, value, flagged }) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
+                    <span style={{ color: '#64748b' }}>{label}</span>
+                    <span style={{ fontWeight: '700', color: flagged ? '#ef4444' : '#e2e8f0', animation: flagged ? 'blink-badge 1s ease infinite' : 'none' }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Brainwave animation */}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
+                <div style={{ fontSize: '9px', color: '#334155', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Neural Pattern Feed</div>
+                <svg width="204" height="32" viewBox="0 0 120 32" style={{ overflow: 'visible' }}>
+                  <path
+                    className="bio-wave-path"
+                    d="M0,16 C10,6 20,26 30,16 C40,6 50,26 60,16 C70,6 80,26 90,16 C100,6 110,26 120,16"
+                    fill="none"
+                    stroke={scoreColor}
+                    strokeWidth="1.5"
+                    strokeOpacity="0.7"
+                  />
+                </svg>
+              </div>
+
+              {/* Live key-latency bar */}
+              <div style={{ fontSize: '9px', color: '#334155', textTransform: 'uppercase', letterSpacing: '1px' }}>Keystroke Latency</div>
+              <div style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: '2px',
+                  width: `${Math.min(100, (bioMetrics.avgKeystrokeLatency / 10))}%`,
+                  background: `linear-gradient(90deg, #34d399, ${scoreColor})`,
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'right', marginTop: '-8px' }}>{bioMetrics.avgKeystrokeLatency ? `${bioMetrics.avgKeystrokeLatency}ms avg` : '—'}</div>
+            </motion.div>
+          )}
         </div>
       </>
     );
@@ -1038,6 +1445,10 @@ const App = () => {
             <div className={`nav-item ${activeTab === 'fraud' ? 'active' : ''}`} onClick={() => setActiveTab('fraud')}>
               <Network size={20} />
               {t('Graph Fraud Detection')}
+            </div>
+            <div className={`nav-item ${activeTab === 'heatmap' ? 'active' : ''}`} onClick={() => setActiveTab('heatmap')}>
+              <Map size={20} />
+              Fraud Heatmap
             </div>
             <div className={`nav-item ${activeTab === 'credit' ? 'active' : ''}`} onClick={() => setActiveTab('credit')}>
               <BarChart3 size={20} />
@@ -1794,6 +2205,17 @@ const App = () => {
                 transition={{ duration: 0.3 }}
               >
                 <RedTeamSimulator onNavigate={(tab) => setActiveTab(tab)} />
+              </motion.div>
+            ) : activeTab === 'heatmap' ? (
+              <motion.div
+                key="heatmap"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                style={{ padding: '0 4px', height: 'calc(100vh - 130px)' }}
+              >
+                <IndiaFraudHeatmap />
               </motion.div>
             ) : null}
           </AnimatePresence>
