@@ -336,22 +336,136 @@ app.post('/api/kyc/submit', (req, res) => {
 let baseTransactions = 25000;
 let baseFlagged = 1300;
 
+// ─── RED TEAM SIMULATION DATA GENERATORS ───────────────────────
+const RT_INDIAN_NAMES = [
+  'Rajesh Sharma', 'Priya Patel', 'Amit Kumar', 'Sunita Devi', 'Vikram Singh',
+  'Anita Reddy', 'Manoj Tiwari', 'Kavita Nair', 'Deepak Verma', 'Neha Gupta',
+  'Suresh Menon', 'Pooja Joshi', 'Rakesh Yadav', 'Meena Iyer', 'Arun Mishra',
+  'Divya Saxena', 'Sanjay Pillai', 'Ritu Agarwal', 'Kiran Bhat', 'Geeta Deshmukh',
+  'Harish Chauhan', 'Swati Kulkarni', 'Nitin Sinha', 'Lata Pawar', 'Ashok Hegde',
+  'Rekha Rao', 'Vijay Choudhary', 'Usha Pandey', 'Ramesh Naik', 'Anjali Kapoor',
+  'Mohan Das', 'Sarita Bhatt', 'Pramod Jha', 'Shweta Banerjee', 'Gopal Krishnan',
+  'Nirmala Shukla', 'Tushar Patil', 'Sangita Mane', 'Dinesh Thakur', 'Asha Nambiar',
+  'Sunil Gowda', 'Padma Rajan', 'Rohit Malhotra', 'Kamla Tripathi', 'Ajay Deshpande',
+  'Bhavna Mehta', 'Satish Kamath'
+];
+
+const RT_CITIES = [
+  'Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Kolkata', 'Hyderabad', 'Pune',
+  'Ahmedabad', 'Jaipur', 'Lucknow', 'Chandigarh', 'Kochi', 'Bhopal', 'Nagpur',
+  'Vadodara', 'Surat', 'Indore', 'Coimbatore', 'Visakhapatnam', 'Thiruvananthapuram'
+];
+
+const RT_BANKS = [
+  { code: 'SBI',  ifsc: 'SBIN', name: 'State Bank of India' },
+  { code: 'PNB',  ifsc: 'PUNB', name: 'Punjab National Bank' },
+  { code: 'HDFC', ifsc: 'HDFC', name: 'HDFC Bank' },
+  { code: 'BOB',  ifsc: 'BARB', name: 'Bank of Baroda' },
+  { code: 'CNRB', ifsc: 'CNRB', name: 'Canara Bank' },
+  { code: 'UBIN', ifsc: 'UBIN', name: 'Union Bank of India' },
+  { code: 'IOB',  ifsc: 'IOBA', name: 'Indian Overseas Bank' },
+  { code: 'BOI',  ifsc: 'BKID', name: 'Bank of India' },
+];
+
+const RT_LABELS_SUSPICIOUS = [
+  'Micro-Structuring below PAN threshold',
+  'Cash deposit just under ₹50K limit',
+  'Split transfer — same beneficiary',
+  'Round-trip fund bounce via NEFT',
+  'Dormant A/C sudden high-value credit',
+  'Multiple RTGS within 30 mins',
+  'UPI collect request chain detected',
+  'Salary A/C — atypical outflow pattern',
+  'Irregular IMPS burst (5+ in 2 min)',
+  'Cross-bank micro-layering detected',
+  'Cash withdrawal — just-below CTR limit',
+  'Third-party UPI ID — name mismatch',
+  'Rapid beneficiary addition + transfer',
+  'Repeated ₹49,900 deposits flagged',
+  'Night-time large RTGS — unusual hours',
+];
+
+const RT_LABELS_FLAGGED = [
+  'CONFIRMED: Rapid Layering via shell UPI',
+  'CONFIRMED: Threshold Split — evading STR',
+  'CONFIRMED: Shell A/C Transfer — mule chain',
+  'CONFIRMED: Circular fund flow — SBI→PNB→HDFC',
+  'CONFIRMED: Smurfing network — 7 accounts',
+  'CONFIRMED: Velocity spike — ₹4.8L in 90s',
+  'CONFIRMED: Mule cascade — 3-hop structure',
+];
+
+const RT_ALERT_MESSAGES = [
+  { level: 'warning', msg: 'Velocity anomaly detected — 12 transactions from same IP in 45 seconds' },
+  { level: 'warning', msg: 'Structuring signature match: repeated ₹49,900 deposits across 3 branches' },
+  { level: 'critical', msg: 'UAPA watchlist proximity match — beneficiary "Apex Global Trading LLC"' },
+  { level: 'warning', msg: 'UPI collect-request chain: 5 linked UPI IDs to same beneficiary in 2 min' },
+  { level: 'info', msg: 'CTR threshold monitor active — cumulative cash deposits approaching ₹10L mark' },
+  { level: 'critical', msg: 'Cross-bank micro-layering: SBI → PNB → HDFC in under 3 minutes' },
+  { level: 'warning', msg: 'Dormant account (14 months) received ₹2.4L RTGS — flagged for review' },
+  { level: 'info', msg: 'Geo-anomaly: login from Jaipur, transaction from Kolkata — 8 sec apart' },
+  { level: 'critical', msg: 'Mule account pattern: 3rd-hop beneficiary matches known fraud ring' },
+  { level: 'warning', msg: 'Night-time RTGS burst: ₹8.2L moved between 01:15–01:22 AM IST' },
+  { level: 'info', msg: 'PAN-Aadhaar mismatch detected on beneficiary KYC record' },
+  { level: 'critical', msg: 'FIU-IND alert: Entity linked to ongoing ED investigation — auto-freeze recommended' },
+];
+
+function generateRedTeamTransaction(index, total) {
+  const isFlagged = index >= (total - 7);
+  const name = RT_INDIAN_NAMES[index % RT_INDIAN_NAMES.length];
+  const city = RT_CITIES[Math.floor(Math.random() * RT_CITIES.length)];
+  const bank = RT_BANKS[Math.floor(Math.random() * RT_BANKS.length)];
+  const branchCode = String(Math.floor(Math.random() * 90000) + 10000);
+  const accLast4 = String(Math.floor(1000 + Math.random() * 9000));
+  const upiId = name.split(' ')[0].toLowerCase() + Math.floor(Math.random() * 99) + '@' +
+    ['oksbi', 'okhdfcbank', 'ybl', 'paytm', 'ibl', 'axl'][Math.floor(Math.random() * 6)];
+
+  const amt = isFlagged
+    ? Math.floor(Math.random() * 8000 + 45000)   // ₹45K–₹53K (high value)
+    : Math.floor(Math.random() * 15000 + 9800);   // ₹9.8K–₹24.8K (structuring range)
+
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - (total - index) * 2); // stagger timestamps backwards
+
+  return {
+    id: `TXN-RT-${String(index + 1).padStart(3, '0')}`,
+    amount: amt,
+    time: now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+    timestamp: now.toISOString(),
+    account: `XXXX${accLast4}`,
+    sender: name,
+    city: city,
+    bank: bank.code,
+    bankName: bank.name,
+    ifsc: `${bank.ifsc}0${branchCode}`,
+    upi: upiId,
+    type: isFlagged ? 'flagged' : 'suspicious',
+    label: isFlagged
+      ? RT_LABELS_FLAGGED[index - (total - 7)]
+      : RT_LABELS_SUSPICIOUS[index % RT_LABELS_SUSPICIOUS.length],
+    riskScore: isFlagged
+      ? Math.floor(Math.random() * 10 + 90)
+      : Math.floor(Math.random() * 25 + 55),
+  };
+}
+
+// ─── WEBSOCKET ─────────────────────────────────────────────────
 wss.on('connection', (ws) => {
   console.log('Client connected for real-time telemetry.');
-  
+  let redTeamTimer = null;
+
   // Send data periodically
   const interval = setInterval(() => {
-    // Generate some random fluctuation
     baseTransactions += Math.floor(Math.random() * 200) - 90;
     baseFlagged += Math.floor(Math.random() * 15) - 6;
-    
+
     ws.send(JSON.stringify({
       type: 'telemetry_update',
       data: {
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
         transactions: baseTransactions,
         flagged: baseFlagged,
-        blocked: Math.floor(baseFlagged * 0.7) // Roughly 70% of flagged get blocked
+        blocked: Math.floor(baseFlagged * 0.7)
       }
     }));
 
@@ -361,24 +475,106 @@ wss.on('connection', (ws) => {
       const names = ['Apex Global Trading', 'Victor Reznov', 'Crimson Tech', 'Nexus Import/Export', 'Evelyn Shaw', 'Quantum Mechanics', 'Blue Ocean LLC', 'Red Shield Co', 'Ramesh Narayan', 'Priya Menon', 'Aarti Desai'];
       const activities = ['Structuring', 'Velocity Anomaly', 'Layering Activity', 'Unusual Geo Activity', 'Multi-jurisdictional Layering ($2.4M)'];
       const name = names[Math.floor(Math.random() * names.length)];
-      const generatedEntity = {
+      ws.send(JSON.stringify({
+        type: 'anomaly_stream',
+        data: {
           id: `TXN-SYS-${Math.floor(Math.random() * 9000) + 1000}X`,
           entity: name,
           type: types[Math.floor(Math.random() * types.length)],
-          risk: Math.floor(Math.random() * 40) + 60, // 60-100
+          risk: Math.floor(Math.random() * 40) + 60,
           activity: activities[Math.floor(Math.random() * activities.length)],
           avatar: name.substring(0, 2).toUpperCase()
-      };
-
-      ws.send(JSON.stringify({
-          type: 'anomaly_stream',
-          data: generatedEntity
+        }
       }));
     }
-  }, 3000); // Send updates every 3 seconds
+  }, 3000);
+
+  // ─── RED TEAM SIMULATION HANDLER ───────────────────
+  ws.on('message', (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+
+    if (msg.type === 'start_redteam') {
+      console.log('🔴 Red Team Simulation started.');
+      const TOTAL = 47;
+      let idx = 0;
+      let alertIdx = 0;
+
+      // Clear any previous simulation
+      if (redTeamTimer) clearInterval(redTeamTimer);
+
+      // Send initial ack
+      ws.send(JSON.stringify({ type: 'rt_started', data: { total: TOTAL } }));
+
+      redTeamTimer = setInterval(() => {
+        if (idx >= TOTAL) {
+          clearInterval(redTeamTimer);
+          redTeamTimer = null;
+
+          // Send detection event
+          ws.send(JSON.stringify({
+            type: 'rt_detected',
+            data: {
+              message: 'STRUCTURING PATTERN DETECTED',
+              pattern: 'Micro-splits below ₹50,000 reporting threshold',
+              confidence: 98.7,
+              model: 'CFI-GNN-v3.2',
+              txCount: TOTAL,
+            }
+          }));
+
+          // Send cascade event after short delay
+          setTimeout(() => {
+            ws.send(JSON.stringify({
+              type: 'rt_cascade',
+              data: {
+                banks: [
+                  { name: 'SBI', status: 'Node Frozen', frozenAt: new Date().toISOString(), accountsFrozen: 3 },
+                  { name: 'PNB', status: 'Freeze Propagated', frozenAt: new Date(Date.now() + 600).toISOString(), accountsFrozen: 2 },
+                  { name: 'HDFC', status: 'Network Locked', frozenAt: new Date(Date.now() + 1200).toISOString(), accountsFrozen: 4 },
+                ]
+              }
+            }));
+          }, 1500);
+
+          return;
+        }
+
+        const tx = generateRedTeamTransaction(idx, TOTAL);
+        ws.send(JSON.stringify({ type: 'rt_transaction', data: tx }));
+
+        // Send periodic live alerts (roughly every 4-6 transactions)
+        if (idx > 0 && idx % (3 + Math.floor(Math.random() * 3)) === 0 && alertIdx < RT_ALERT_MESSAGES.length) {
+          const alert = RT_ALERT_MESSAGES[alertIdx];
+          ws.send(JSON.stringify({
+            type: 'rt_alert',
+            data: {
+              id: `ALERT-${Date.now()}-${alertIdx}`,
+              level: alert.level,
+              message: alert.msg,
+              timestamp: new Date().toISOString(),
+              source: ['CFI-GNN Engine', 'RBI STR Monitor', 'FIU-IND Watchlist', 'Velocity Analyzer', 'UPI Fraud Net'][Math.floor(Math.random() * 5)],
+            }
+          }));
+          alertIdx++;
+        }
+
+        idx++;
+      }, idx >= 40 ? 350 : 80); // dynamic — but setInterval is fixed, so we handle in frontend
+    }
+
+    if (msg.type === 'stop_redteam') {
+      console.log('🔴 Red Team Simulation stopped.');
+      if (redTeamTimer) {
+        clearInterval(redTeamTimer);
+        redTeamTimer = null;
+      }
+    }
+  });
 
   ws.on('close', () => {
     clearInterval(interval);
+    if (redTeamTimer) clearInterval(redTeamTimer);
     console.log('Client disconnected.');
   });
 });
