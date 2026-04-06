@@ -19,7 +19,8 @@ import {
   ExternalLink,
   Download,
   MessageCircle,
-  Check
+  Check,
+  RefreshCw
 } from 'lucide-react';
 import {
   AreaChart,
@@ -657,6 +658,29 @@ const App = () => {
     };
   }, []);
 
+  const handleResetKYC = () => {
+    setKycData({
+      customerName: '',
+      accountNumber: '',
+      bankName: '',
+      ifscCode: '',
+      aadhaarNumber: '',
+      mobileNumber: '',
+      address: ''
+    });
+    setCapturedImage(null);
+    setCameraActive(false);
+    setIsFaceAligned(false);
+    setFaceMessage('Initializing AI...');
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (detectionInterval.current) {
+      clearInterval(detectionInterval.current);
+    }
+    addToast("KYC Form Cleared & Initialized.", "success");
+  };
+
   const handleKYCSubmit = async () => {
     if (!capturedImage) {
       addToast("Please capture liveness photo first.", 'warning');
@@ -692,7 +716,7 @@ const App = () => {
           statusColor: 'success'
         }, ...prev]);
 
-        setTimeout(() => setActiveTab('compliance'), 1500);
+        // Removed auto-redirect so the user can use the "Start New Entry" button right away
       } else {
         addToast("Failed to process KYC.", 'error');
       }
@@ -712,7 +736,7 @@ const App = () => {
       }, ...prev]);
 
       addToast("KYC Processed Successfully! Report added.", 'success');
-      setTimeout(() => setActiveTab('compliance'), 1500);
+      // Removed auto-redirect
     }
   };
 
@@ -1575,6 +1599,11 @@ const App = () => {
                       </button>
                     )}
                     <button type="button" disabled={!capturedImage} onClick={handleKYCSubmit} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: capturedImage ? 'var(--success)' : 'rgba(255,255,255,0.05)', borderColor: capturedImage ? 'var(--success)' : 'transparent', color: capturedImage ? '#fff' : 'var(--text-secondary)' }}>{t('Verify Liveness & Submit')}</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                    <button type="button" onClick={handleResetKYC} className="btn" style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 59, 48, 0.1)', color: 'var(--danger)', border: '1px solid rgba(255,59,48,0.3)' }}>
+                      <RefreshCw size={16} style={{ marginRight: '6px' }} /> {t('Start New Entry')}
+                    </button>
                   </div>
                 </div>
               </motion.div>
