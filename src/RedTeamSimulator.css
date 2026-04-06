@@ -1,0 +1,521 @@
+/* ===== RED TEAM SIMULATOR — ANIMATIONS & STYLES ===== */
+
+/* ---------- PHASE / CONTAINER TRANSITIONS ---------- */
+.rt-container {
+  position: relative;
+  min-height: 600px;
+}
+
+.rt-fade-in {
+  animation: rtFadeIn 0.5s ease forwards;
+}
+
+.rt-fade-out {
+  animation: rtFadeOut 0.4s ease forwards;
+}
+
+@keyframes rtFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rtFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-12px); }
+}
+
+/* ---------- RED SCREEN FLASH (detection moment) ---------- */
+.rt-screen-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 59, 48, 0.3);
+  z-index: 9000;
+  pointer-events: none;
+  animation: rtScreenFlash 0.5s ease forwards;
+}
+
+@keyframes rtScreenFlash {
+  0%   { opacity: 0; }
+  30%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- PULSE RING (radar ping on alert banner) ---------- */
+.rt-pulse-ring {
+  position: relative;
+}
+
+.rt-pulse-ring::before,
+.rt-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid rgba(255, 59, 48, 0.6);
+  border-radius: 16px;
+  animation: rtRadarPing 1.5s ease-out infinite;
+}
+
+.rt-pulse-ring::after {
+  animation-delay: 0.5s;
+}
+
+@keyframes rtRadarPing {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+
+/* ---------- TYPEWRITER CURSOR ---------- */
+.rt-typewriter-cursor::after {
+  content: '▋';
+  animation: rtBlink 0.7s step-end infinite;
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+@keyframes rtBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ---------- TRANSACTION SLIDE-IN ---------- */
+.rt-tx-row {
+  animation: rtSlideIn 0.35s ease forwards;
+  opacity: 0;
+}
+
+@keyframes rtSlideIn {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- BANK CASCADE CARDS ---------- */
+.rt-bank-card {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  animation: rtBankAppear 0.5s ease forwards;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.rt-bank-card.card-0 { animation-delay: 0ms; }
+.rt-bank-card.card-1 { animation-delay: 600ms; }
+.rt-bank-card.card-2 { animation-delay: 1200ms; }
+
+@keyframes rtBankAppear {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.95); }
+  60%  { opacity: 1; transform: translateY(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Red border pulse on bank cards */
+.rt-bank-card.frozen {
+  border-color: var(--danger);
+  animation: rtBankAppear 0.5s ease forwards, rtBorderPulse 1.6s ease-in-out infinite;
+}
+
+.rt-bank-card.card-1.frozen {
+  animation: rtBankAppear 0.5s ease 600ms forwards, rtBorderPulse 1.6s ease-in-out 600ms infinite;
+}
+
+.rt-bank-card.card-2.frozen {
+  animation: rtBankAppear 0.5s ease 1200ms forwards, rtBorderPulse 1.6s ease-in-out 1200ms infinite;
+}
+
+@keyframes rtBorderPulse {
+  0%, 100% {
+    border-color: var(--danger);
+    box-shadow: 0 0 8px rgba(255, 59, 48, 0.3), inset 0 0 8px rgba(255, 59, 48, 0.05);
+  }
+  50% {
+    border-color: rgba(255, 59, 48, 0.9);
+    box-shadow: 0 0 20px rgba(255, 59, 48, 0.6), inset 0 0 12px rgba(255, 59, 48, 0.1);
+  }
+}
+
+/* Lock icon spin */
+.rt-lock-icon {
+  animation: rtLockSpin 0.6s ease forwards;
+}
+
+@keyframes rtLockSpin {
+  0%   { transform: rotate(-30deg) scale(0.6); opacity: 0; }
+  60%  { transform: rotate(8deg) scale(1.1); opacity: 1; }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* ---------- CONNECTING LINE (SVG stroke-dashoffset) ---------- */
+.rt-cascade-line {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: rtDrawLine 0.8s ease forwards;
+}
+
+.rt-cascade-line.line-0 { animation-delay: 400ms; }
+.rt-cascade-line.line-1 { animation-delay: 1000ms; }
+
+@keyframes rtDrawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ---------- SCORECARD METRIC CARDS ---------- */
+.rt-metric-card {
+  background: rgba(18, 22, 35, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.rt-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+
+.rt-metric-card.card-cyan::before  { background: linear-gradient(90deg, var(--accent-cyan), transparent); }
+.rt-metric-card.card-green::before { background: linear-gradient(90deg, var(--success), transparent); }
+.rt-metric-card.card-amber::before { background: linear-gradient(90deg, #f59e0b, transparent); }
+
+.rt-metric-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.rt-metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+}
+
+.rt-metric-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 500;
+}
+
+/* ---------- RUNNING TOTAL COUNTER ---------- */
+.rt-running-total {
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(157, 78, 221, 0.08));
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* ---------- TRANSACTION BADGE ---------- */
+.rt-amount-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rt-amount-badge.suspicious {
+  background: rgba(255, 204, 0, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(255, 204, 0, 0.25);
+}
+
+.rt-amount-badge.flagged {
+  background: rgba(255, 59, 48, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(255, 59, 48, 0.25);
+}
+
+/* ---------- STATUS INDICATOR (transaction feed) ---------- */
+.rt-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rt-status-dot.suspicious {
+  background: var(--warning);
+  box-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
+}
+
+.rt-status-dot.flagged {
+  background: var(--danger);
+  box-shadow: 0 0 6px rgba(255, 59, 48, 0.5);
+  animation: rtDotPulse 1s infinite;
+}
+
+@keyframes rtDotPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.5); }
+  50%      { box-shadow: 0 0 12px rgba(255, 59, 48, 0.9); }
+}
+
+/* ---------- RESET OVERLAY ---------- */
+.rt-reset-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 15, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 100;
+  border-radius: 16px;
+  animation: rtResetFadeIn 0.3s ease;
+}
+
+@keyframes rtResetFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.rt-reset-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0, 240, 255, 0.15);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: rtSpin 0.8s linear infinite;
+}
+
+@keyframes rtSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- PROGRESS BAR (simulation progress) ---------- */
+.rt-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rt-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.rt-progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -2px;
+  bottom: -2px;
+  width: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-cyan);
+  opacity: 0.9;
+}
+
+/* ---------- ALERT BANNER ---------- */
+.rt-alert-banner {
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.25);
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+}
+
+.rt-alert-banner .rt-alert-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 59, 48, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--danger);
+}
+
+/* ---------- SHARE / ACTION BUTTONS ---------- */
+.rt-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+
+.rt-btn-primary {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(157, 78, 221, 0.2));
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: white;
+}
+
+.rt-btn-primary:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.35), rgba(157, 78, 221, 0.35));
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.rt-btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.rt-btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rt-btn-danger {
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  color: var(--danger);
+}
+
+.rt-btn-danger:hover {
+  background: rgba(255, 59, 48, 0.2);
+  box-shadow: 0 4px 16px rgba(255, 59, 48, 0.2);
+}
+
+/* ---------- START BUTTON (idle state) ---------- */
+.rt-start-btn {
+  padding: 16px 40px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(157, 78, 221, 0.12));
+  color: white;
+  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.rt-start-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(157, 78, 221, 0.15));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.rt-start-btn:hover {
+  border-color: rgba(0, 240, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 240, 255, 0.2), 0 0 60px rgba(0, 240, 255, 0.08);
+}
+
+.rt-start-btn:hover::before {
+  opacity: 1;
+}
+
+/* ---------- TRANSACTION FEED CONTAINER ---------- */
+.rt-feed-container {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 4px;
+}
+
+.rt-feed-container::-webkit-scrollbar {
+  width: 4px;
+}
+.rt-feed-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* ---------- BANK CASCADE CONTAINER ---------- */
+.rt-cascade-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  justify-content: center;
+  position: relative;
+  padding: 20px 0;
+}
+
+.rt-bank-card-inner {
+  background: rgba(18, 22, 35, 0.8);
+  border-radius: 14px;
+  padding: 20px;
+  min-width: 180px;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- COPY FEEDBACK ---------- */
+.rt-copy-feedback {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(52, 199, 89, 0.9);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 9999;
+  animation: rtCopyPop 2s ease forwards;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(52, 199, 89, 0.4);
+}
+
+@keyframes rtCopyPop {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+/* ---------- HEADER GLOW DECORATION ---------- */
+.rt-header-glow {
+  position: relative;
+}
+
+.rt-header-glow::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-cyan), transparent);
+  border-radius: 3px;
+}

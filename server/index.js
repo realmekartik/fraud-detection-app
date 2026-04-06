@@ -99,106 +99,90 @@ app.post('/api/login', (req, res) => {
 // Mock Freeze Tracker Dataset
 const freezeTrackingData = [
   {
-    customerId: "CUST001",
-    name: "Rahul Sharma",
-    accountNumber: "1234567890",
+    customerId: "IB-CUST-892100",
+    name: "Ramesh Narayan",
+    accountNumber: "6543219876",
     status: "Frozen",
     actions: [
       {
-        branch: "Delhi Main Branch",
-        city: "New Delhi",
-        bank: "SBI",
+        branch: "Royapettah",
+        city: "Chennai",
+        bank: "Indian Bank",
         action: "Marked Suspicious",
-        timestamp: "2026-04-01 10:30 AM",
-        reason: "Unusual transaction pattern"
+        timestamp: "2026-04-05 09:15 AM",
+        reason: "Velocity Anomaly - Multiple transfers > ₹50,000 from unknown IP"
       },
       {
-        branch: "Mumbai Central",
-        city: "Mumbai",
-        bank: "SBI",
+        branch: "Head Office - AML Central",
+        city: "Chennai",
+        bank: "Indian Bank",
         action: "Freeze Initiated",
-        timestamp: "2026-04-01 11:15 AM",
-        reason: "High-risk transaction chain"
+        timestamp: "2026-04-05 11:30 AM",
+        reason: "Section 51A UAPA Compliance - RBI Watchlist Match"
       },
       {
-        branch: "Lucknow Branch",
-        city: "Lucknow",
-        bank: "SBI",
+        branch: "Head Office - Compliance",
+        city: "Chennai",
+        bank: "Indian Bank",
         action: "Block Confirmed",
-        timestamp: "2026-04-01 12:00 PM",
-        reason: "Linked to fraudulent entities"
+        timestamp: "2026-04-05 02:45 PM",
+        reason: "Directive from FIU-IND (Financial Intelligence Unit India)"
       }
     ]
   },
   {
-    customerId: "CUST002",
-    name: "Anita Verma",
-    accountNumber: "9876543210",
+    customerId: "SBI-CUST-10492",
+    name: "Aarti Desai",
+    accountNumber: "3214567890",
     status: "Active",
     actions: [
       {
-        branch: "Connaught Place",
-        city: "New Delhi",
-        bank: "HDFC Bank",
+        branch: "Nariman Point",
+        city: "Mumbai",
+        bank: "SBI",
         action: "KYC Verified",
-        timestamp: "2026-02-15 09:00 AM",
-        reason: "Account successfully onboarded"
+        timestamp: "2026-03-21 10:00 AM",
+        reason: "Re-KYC via Aadhaar Biometric Liveness Cleared (FIPS Level 3)"
       }
     ]
   },
   {
-    customerId: "CUST003",
-    name: "Vikram Singh",
-    accountNumber: "5555444433",
+    customerId: "IB-CUST-773412",
+    name: "Srikanth Ventures Pvt Ltd",
+    accountNumber: "6543999123",
     status: "Suspicious",
     actions: [
       {
-        branch: "MG Road",
-        city: "Bengaluru",
-        bank: "Canara",
+        branch: "Anna Salai Corporate",
+        city: "Chennai",
+        bank: "Indian Bank",
         action: "Marked Suspicious",
-        timestamp: "2026-04-04 14:20 PM",
-        reason: "Velocity Anomaly - Rapid Transfers"
+        timestamp: "2026-04-06 13:20 PM",
+        reason: "Structuring Detected - 15 cash deposits just below PAN limit threshold"
       }
     ]
   },
   {
-    customerId: "CUST004",
-    name: "Priya Desai",
-    accountNumber: "1111222233",
+    customerId: "HDFC-CUST-9921",
+    name: "Priya Menon",
+    accountNumber: "5010023414",
     status: "Blocked",
     actions: [
       {
-        branch: "Dadar",
-        city: "Mumbai",
-        bank: "Bank of India",
+        branch: "Koramangala 4th Block",
+        city: "Bengaluru",
+        bank: "HDFC Bank",
         action: "Marked Suspicious",
-        timestamp: "2026-03-25 10:45 AM",
-        reason: "Login from irregular IP address"
+        timestamp: "2026-04-02 10:45 AM",
+        reason: "Login from irregular IP (Location: Russia) followed by beneficiary addition"
       },
       {
-        branch: "Nariman Point",
+        branch: "Cyber Fraud Dept",
         city: "Mumbai",
-        bank: "Union Bank",
+        bank: "HDFC Bank",
         action: "Block Confirmed",
-        timestamp: "2026-03-25 11:30 AM",
-        reason: "Detected as compromised account"
-      }
-    ]
-  },
-  {
-    customerId: "CUST005",
-    name: "Suresh Patil",
-    accountNumber: "9988776655",
-    status: "Frozen",
-    actions: [
-      {
-        branch: "Shivajinagar",
-        city: "Pune",
-        bank: "Maharashtra",
-        action: "Freeze Initiated",
-        timestamp: "2026-04-05 08:15 AM",
-        reason: "Court order received"
+        timestamp: "2026-04-02 11:30 AM",
+        reason: "Confirmed account takeover - 1930 Helpline report filed via NCSRP"
       }
     ]
   }
@@ -370,6 +354,27 @@ wss.on('connection', (ws) => {
         blocked: Math.floor(baseFlagged * 0.7) // Roughly 70% of flagged get blocked
       }
     }));
+
+    // Broadcast real-time AI Simulator anomalies
+    if (Math.random() > 0.4) {
+      const types = ['Corporate Shell', 'Individual', 'High-Risk Corporate', 'Trade Business', 'Financial Services'];
+      const names = ['Apex Global Trading', 'Victor Reznov', 'Crimson Tech', 'Nexus Import/Export', 'Evelyn Shaw', 'Quantum Mechanics', 'Blue Ocean LLC', 'Red Shield Co', 'Ramesh Narayan', 'Priya Menon', 'Aarti Desai'];
+      const activities = ['Structuring', 'Velocity Anomaly', 'Layering Activity', 'Unusual Geo Activity', 'Multi-jurisdictional Layering ($2.4M)'];
+      const name = names[Math.floor(Math.random() * names.length)];
+      const generatedEntity = {
+          id: `TXN-SYS-${Math.floor(Math.random() * 9000) + 1000}X`,
+          entity: name,
+          type: types[Math.floor(Math.random() * types.length)],
+          risk: Math.floor(Math.random() * 40) + 60, // 60-100
+          activity: activities[Math.floor(Math.random() * activities.length)],
+          avatar: name.substring(0, 2).toUpperCase()
+      };
+
+      ws.send(JSON.stringify({
+          type: 'anomaly_stream',
+          data: generatedEntity
+      }));
+    }
   }, 3000); // Send updates every 3 seconds
 
   ws.on('close', () => {

@@ -42,6 +42,7 @@ import autoTable from 'jspdf-autotable';
 import * as faceapi from 'face-api.js';
 import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
+import RedTeamSimulator from './RedTeamSimulator';
 
 
 
@@ -166,6 +167,34 @@ const App = () => {
   const [freezeSearchResults, setFreezeSearchResults] = useState(null);
   const [isFreezeSearching, setIsFreezeSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Added auto-load function to simulate pulling bank real-time data into KYC form
+  const handleAutoLoadKYCData = () => {
+    // We simulate pulling the first "Active" or clean profile from the bank server DB 
+    // to show how automated internal transfers work.
+    try {
+      fetch(`${API_URL}/freeze-tracker/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: 'SBI-CUST-10492' }) // hardcode one of our realistic simulator users
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setKycData({
+            customerName: data.data.name,
+            accountNumber: data.data.accountNumber,
+            bankName: "State Bank of India",
+            ifscCode: "SBIN0000691", // Mumbai Nariman point
+            aadhaarNumber: "8921-XXXX-4512",
+            mobileNumber: "+91 98XXXXXX21",
+            address: "Nariman Point, Mumbai, Maharashtra"
+          });
+          addToast("Successfully imported live bank profile data from remote database.", "success");
+        }
+      });
+    } catch(e) {}
+  };
 
   const handleFreezeSearch = async (e) => {
     e.preventDefault();
@@ -383,13 +412,30 @@ const App = () => {
 
   // Fetch initial data & preload logos
   useEffect(() => {
-    // Generate dynamic anomalies locally instead of backend mock
-    const freshAnomalies = generateHighRiskEntities(selectedBank ? selectedBank.id : 'default');
-    setNetworkAnomalies(freshAnomalies);
-
-    if (freshAnomalies.length > 0) {
-      loadCreditProfile(freshAnomalies[0], false);
-    }
+    // Fetch anomalies from real bank server database
+    fetch(`${API_URL}/anomalies`)
+      .then(res => res.json())
+      .then(data => {
+        const mappedAnomalies = data.map(item => ({
+          id: item.id,
+          entity: item.entity,
+          type: item.type,
+          risk: item.risk,
+          activity: 'Pattern Analysis: ' + item.status,
+          avatar: item.entity.substring(0, 2).toUpperCase()
+        }));
+        setNetworkAnomalies(mappedAnomalies);
+        if (mappedAnomalies.length > 0) {
+          loadCreditProfile(mappedAnomalies[0], false);
+        }
+      })
+      .catch(e => {
+        const freshAnomalies = generateHighRiskEntities(selectedBank ? selectedBank.id : 'default');
+        setNetworkAnomalies(freshAnomalies);
+        if (freshAnomalies.length > 0) {
+          loadCreditProfile(freshAnomalies[0], false);
+        }
+      });
 
     // Preload logos
     supportedBanks.forEach(bank => {
@@ -412,6 +458,13 @@ const App = () => {
         setFraudTimelineData(prev => {
           const newData = [...prev.slice(1), { time, transactions, flagged, blocked }];
           return newData;
+        });
+      } else if (message.type === 'anomaly_stream') {
+        setNetworkAnomalies(prev => {
+          const updated = [message.data, ...prev].slice(0, 9);
+          // Auto-load credit profile to simulate the AI simulator running
+          loadCreditProfile(message.data, false);
+          return updated;
         });
       }
     };
@@ -1004,6 +1057,10 @@ const App = () => {
             <div className={`nav-item ${activeTab === 'compliance' ? 'active' : ''}`} onClick={() => setActiveTab('compliance')}>
               <FileKey size={20} />
               {t('Compliance Reports')}
+            </div>
+            <div className={`nav-item ${activeTab === 'redteam' ? 'active' : ''}`} onClick={() => setActiveTab('redteam')}>
+              <AlertOctagon size={20} />
+              Red Team Simulator
             </div>
           </div>
 
@@ -1726,6 +1783,16 @@ const App = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Next Auto-Purge:</span> <span style={{ fontWeight: '600', color: 'var(--warning)' }}>Oct 12, 2026</span></div>
                   </div>
                 </div>
+              </motion.div>
+            ) : activeTab === 'redteam' ? (
+              <motion.div
+                key="redteam"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <RedTeamSimulator onNavigate={(tab) => setActiveTab(tab)} />
               </motion.div>
             ) : null}
           </AnimatePresence>
