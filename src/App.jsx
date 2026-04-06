@@ -1155,7 +1155,9 @@ const App = () => {
             from { stroke-dashoffset: ${circumference}; }
             to   { stroke-dashoffset: ${dashOffset}; }
           }
+          @keyframes stroke-dashoffset { to { stroke-dashoffset: 0; } }
           @keyframes blink-badge { 0%,100%{opacity:1} 50%{opacity:0.4} }
+          @keyframes spin { 100% { transform: rotate(360deg); } }
           .bio-wave-path { animation: brainwave 2.5s ease-in-out infinite; }
         `}</style>
 
@@ -1165,13 +1167,15 @@ const App = () => {
         >
           {/* ── Login card ── */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6, type: 'spring', bounce: 0.4 }}
             className="glass-panel"
-            style={{ width: '100%', maxWidth: '480px', padding: '40px', flexShrink: 0 }}
+            style={{ width: '100%', maxWidth: '480px', padding: '40px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}
           >
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            {/* Ambient inner glow */}
+            <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', background: 'radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 50%)', animation: 'spin 20s linear infinite', pointerEvents: 'none', zIndex: 0 }} />
+            <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
               <ShieldAlert color="var(--accent-cyan)" size={48} style={{ margin: '0 auto 16px' }} />
               <h1 className="text-gradient" style={{ fontSize: '28px', marginBottom: '8px' }}>Central Fraud Intelligence</h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Inter-Banking Security Authentication Portal</p>
@@ -1278,8 +1282,8 @@ const App = () => {
                   </div>
 
                   {!loginBlocked && (
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '14px', background: loginWarning ? 'rgba(251,191,36,0.2)' : undefined, borderColor: loginWarning ? 'rgba(251,191,36,0.5)' : undefined, color: loginWarning ? '#fbbf24' : undefined }}>
-                      {loginWarning ? '⏳ Enhanced verification…' : 'Secure Login to Network'}
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '16px', background: loginWarning ? 'rgba(251,191,36,0.2)' : undefined, borderColor: loginWarning ? 'rgba(251,191,36,0.5)' : undefined, color: loginWarning ? '#fbbf24' : undefined, fontSize: '15px', fontWeight: '600' }}>
+                      {loginWarning ? '⏳ ENHANCED VERIFICATION…' : 'SECURE LOGIN TO NETWORK'}
                     </button>
                   )}
                 </form>
