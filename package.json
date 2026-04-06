@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:server\" \"npm run dev:ml\"",
-    "dev:frontend": "vite",
+    "dev:frontend": "vite --host",
     "dev:server": "cd server && npm run dev",
     "dev:ml": "cd ml-engine && .\\venv\\Scripts\\python.exe main.py",
     "build": "vite build",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "face-api.js": "^0.22.2",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",

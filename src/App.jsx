@@ -38,13 +38,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as faceapi from 'face-api.js';
 import ParticleBackground from './ParticleBackground';
 import EntityInvestigation from './EntityInvestigation';
 
 
 
-const API_URL = 'http://localhost:3001/api';
-const WS_URL = 'ws://localhost:3001';
+const API_URL = '/api';
+const WS_URL = 'wss://social-pigs-rest.loca.lt';
 
 export const supportedBanks = [
   { id: 'sbi', name: 'SBI', color: '#005596', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg' },
@@ -221,6 +222,12 @@ const App = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+
+  // AI Liveness State
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [isFaceAligned, setIsFaceAligned] = useState(false);
+  const [faceMessage, setFaceMessage] = useState('Initializing AI...');
+  const detectionInterval = useRef(null);
 
   // Toast State
   const [toasts, setToasts] = useState([]);
@@ -538,6 +545,13 @@ const App = () => {
 
   const startCamera = async () => {
     try {
+      if (!modelsLoaded) {
+        setFaceMessage("Initializing AI Core...");
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        setModelsLoaded(true);
+        setFaceMessage("AI Core Initialized. Awaiting Face Data...");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -545,24 +559,99 @@ const App = () => {
       }
       setCameraActive(true);
       setCapturedImage(null);
+      setIsFaceAligned(false);
     } catch (err) {
       console.error("Error accessing camera:", err);
       addToast("Please allow camera permissions to proceed with Liveness Capture.", 'error');
     }
   };
 
-  const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      // Set canvas size matching video resolving size
-      canvasRef.current.width = videoRef.current.videoWidth;
-      canvasRef.current.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-      const imgDataUrl = canvasRef.current.toDataURL('image/png');
-      setCapturedImage(imgDataUrl);
+  const handleVideoPlay = () => {
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    // Clear any previous interval
+    if (detectionInterval.current) clearInterval(detectionInterval.current);
+    
+    // Slight delay to ensure video dimensions are resolved
+    setTimeout(() => {
+      const displaySize = { width: video.videoWidth || 300, height: video.videoHeight || 300 };
+      faceapi.matchDimensions(canvas, displaySize);
+      
+      detectionInterval.current = setInterval(async () => {
+        if (!cameraActive || video.paused || video.ended) {
+          clearInterval(detectionInterval.current);
+          return;
+        }
+        
+        try {
+          const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+          
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          if (detections.length === 0) {
+            setIsFaceAligned(false);
+            setFaceMessage('No Face Detected (Invalid Object / Hand)');
+            
+            // Draw Full red border to indicate invalid frame
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            
+            ctx.font = "16px Inter";
+            ctx.fillStyle = "rgba(255, 0, 0, 1)";
+            ctx.fillText("Hand/Invalid Object Detected", 20, 30);
+          } else if (detections.length > 1) {
+            setIsFaceAligned(false);
+            setFaceMessage('Multiple faces detected! Only one allowed.');
+            faceapi.draw.drawDetections(canvas, resizedDetections, { withScore: false, boxColor: 'rgba(255, 0, 0, 0.8)' });
+          } else {
+            const box = resizedDetections[0].box;
+            const faceArea = box.width * box.height;
+            const screenArea = canvas.width * canvas.height;
+            const ratio = faceArea / screenArea;
+            
+            if (ratio < 0.05) {
+              setIsFaceAligned(false);
+              setFaceMessage('Move closer to the camera');
+              faceapi.draw.drawDetections(canvas, resizedDetections, { withScore: false, boxColor: 'rgba(255, 0, 0, 0.8)' }); // Red for too far
+            } else {
+              setIsFaceAligned(true);
+              setFaceMessage('Face Tracking Locked ✓');
+              faceapi.draw.drawDetections(canvas, resizedDetections, { withScore: false, boxColor: 'rgba(0, 255, 0, 0.8)' }); // Green!
+            }
+          }
+        } catch (error) {
+          // Ignore async errors if video gets unmounted rapidly
+        }
+      }, 150);
+    }, 500);
+  };
 
-      // Stop camera after capture if desired, or keep it running. Let's keep it running.
-      addToast("Image Captured successfully! You can verify and submit.");
+  const captureImage = () => {
+    if (!isFaceAligned) {
+      addToast("AI must verify exactly one face to capture.", "error");
+      return;
+    }
+
+    if (videoRef.current && canvasRef.current) {
+      // Draw actual camera frame onto a temporary canvas for the snapshot
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = videoRef.current.videoWidth;
+      tempCanvas.height = videoRef.current.videoHeight;
+      const context = tempCanvas.getContext('2d');
+      context.drawImage(videoRef.current, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      const imgDataUrl = tempCanvas.toDataURL('image/png');
+      setCapturedImage(imgDataUrl);
+      
+      // Stop tracking
+      if (detectionInterval.current) clearInterval(detectionInterval.current);
+      addToast("Image Captured safely under AI supervision!");
     }
   };
 
@@ -571,6 +660,9 @@ const App = () => {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (detectionInterval.current) {
+        clearInterval(detectionInterval.current);
       }
     };
   }, []);
@@ -939,8 +1031,6 @@ const App = () => {
                     <option value="hi" style={{ color: '#000' }}>हिन्दी (Hindi)</option>
                   </select>
                 </div>
-                <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.2)' }}></div>
-                <img src="/amrit_mahotsav.png" alt="Azadi Ka Amrit Mahotsav" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.1) drop-shadow(0 0 4px rgba(255,255,255,0.2))' }} />
               </div>
               <button className="btn" style={{ background: 'transparent', padding: '8px' }}>
                 <Bell size={20} />
@@ -1468,6 +1558,7 @@ const App = () => {
                           autoPlay
                           playsInline
                           muted
+                          onPlay={handleVideoPlay}
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', display: cameraActive ? 'block' : 'none' }}
                         ></video>
 
@@ -1478,20 +1569,29 @@ const App = () => {
                           </div>
                         )}
 
-                        {/* Camera UI Guidelines overlay */}
-                        <div style={{ position: 'absolute', width: '180px', height: '240px', border: '2px dashed rgba(0, 240, 255, 0.5)', borderRadius: '120px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', display: cameraActive ? 'block' : 'none' }}></div>
+                        {/* Camera UI Guidelines overlay (removed static dashed line in favor of AI box) */}
                       </>
                     )}
-                    <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', display: cameraActive && !capturedImage ? 'block' : 'none' }}></canvas>
+                    
+                    {cameraActive && !capturedImage && (
+                       <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', background: isFaceAligned ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)', backdropFilter: 'blur(4px)', padding: '6px 12px', borderRadius: '20px', border: `1px solid ${isFaceAligned ? 'rgba(0, 255, 0, 0.5)' : 'rgba(255, 0, 0, 0.5)'}`, whiteSpace: 'nowrap' }}>
+                         <span style={{ color: '#fff', fontSize: '12px', fontWeight: '500' }}>{faceMessage}</span>
+                       </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', gap: '12px' }}>
                     {!cameraActive ? (
-                      <button type="button" onClick={startCamera} className="btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)', textAlign: 'center', justifyContent: 'center' }}>{t('Enable Camera')}</button>
+                      <button type="button" onClick={startCamera} className="btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)', textAlign: 'center', justifyContent: 'center' }}>
+                        {modelsLoaded ? t('Enable Camera') : t('Load AI & Camera')}
+                      </button>
                     ) : (
-                      <button type="button" onClick={captureImage} className="btn" style={{ flex: 1, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--accent-cyan)', border: '1px solid rgba(0, 240, 255, 0.3)', textAlign: 'center', justifyContent: 'center' }}>{t('Capture Photo')}</button>
+                      <button type="button" onClick={captureImage} disabled={!isFaceAligned} className="btn" style={{ flex: 1, background: isFaceAligned ? 'rgba(0, 255, 0, 0.15)' : 'rgba(255, 255, 255, 0.05)', color: isFaceAligned ? '#00ff00' : 'var(--text-secondary)', border: `1px solid ${isFaceAligned ? 'rgba(0, 255, 0, 0.4)' : 'transparent'}`, textAlign: 'center', justifyContent: 'center', cursor: isFaceAligned ? 'pointer' : 'not-allowed', transition: 'all 0.2s' }}>
+                        {isFaceAligned ? t('Capture Photo') : t('Waiting for AI Lock...')}
+                      </button>
                     )}
-                    <button type="button" onClick={handleKYCSubmit} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'var(--success)', borderColor: 'var(--success)' }}>{t('Verify Liveness & Submit')}</button>
+                    <button type="button" disabled={!capturedImage} onClick={handleKYCSubmit} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: capturedImage ? 'var(--success)' : 'rgba(255,255,255,0.05)', borderColor: capturedImage ? 'var(--success)' : 'transparent', color: capturedImage ? '#fff' : 'var(--text-secondary)' }}>{t('Verify Liveness & Submit')}</button>
                   </div>
                 </div>
               </motion.div>
