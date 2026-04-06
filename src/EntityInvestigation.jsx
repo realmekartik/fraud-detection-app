@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Network, ShieldAlert, AlertTriangle, CheckCircle, Activity, Lock, Users, XCircle } from 'lucide-react';
+import { Network, ShieldAlert, AlertTriangle, CheckCircle, Activity, Lock, Users, XCircle, FileKey } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Generate bank-specific 7-layer data
@@ -162,6 +162,49 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
     }, ...prev]);
 
     addToast(`Layer ${layerIndex} bulk action: ${action.toUpperCase()} applied to ${layerNodes.length} entities.`, action === 'frozen' ? 'error' : 'warning');
+  };
+
+  const handleChainFreeze = (startNodeId) => {
+    const downstreamNodeIds = new Set([startNodeId]);
+    let queue = [startNodeId];
+    
+    while (queue.length > 0) {
+      const current = queue.shift();
+      edges.forEach(edge => {
+        if (edge.source === current && !downstreamNodeIds.has(edge.target)) {
+          downstreamNodeIds.add(edge.target);
+          queue.push(edge.target);
+        }
+      });
+    }
+
+    setNodes(prev => prev.map(n => downstreamNodeIds.has(n.id) ? { ...n, status: 'frozen' } : n));
+    
+    setComplianceLogs(prev => [{
+      id: `C-FRZ-${Math.floor(1000 + Math.random() * 9000)}`,
+      type: `Cascading Freeze Initiated (PMLA)`,
+      entity: `${startNodeId} -> Node Chain`,
+      author: `admin@${selectedBank?.id || 'sys'}.co.in`,
+      time: 'Just Now',
+      status: 'CHAIN FROZEN',
+      statusColor: 'danger'
+    }, ...prev]);
+
+    addToast(`Chain Freezed Initiated: ${downstreamNodeIds.size} entities locked down the flow.`, 'error');
+  };
+
+  const handleSAR = (nodeId) => {
+    const node = nodes.find(n => n.id === nodeId);
+    setComplianceLogs(prev => [{
+      id: `STR-${Math.floor(10000 + Math.random() * 90000)}`,
+      type: `Suspicious Transaction Report`,
+      entity: node.name,
+      author: `admin@${selectedBank?.id || 'sys'}.co.in`,
+      time: 'Just Now',
+      status: 'FILED',
+      statusColor: 'high'
+    }, ...prev]);
+    addToast(`STR filed with FIU-IND for ${node.name}. Compliance DB updated.`, 'success');
   };
 
   // Node Render
@@ -378,6 +421,14 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
                     <strong>₹{selectedEntity.amount.toLocaleString('en-IN')}</strong>
                   </div>
                   <div className="info-item">
+                    <span>Velocity Score</span>
+                    <strong>{selectedEntity.risk > 80 ? 'High' : 'Normal'} ({(selectedEntity.amount / Math.max(1, selectedEntity.risk)).toFixed(0)} txn/hr)</strong>
+                  </div>
+                  <div className="info-item">
+                    <span>CKYC Validation</span>
+                    <strong style={{ color: selectedEntity.risk > 80 ? 'var(--warning)' : 'var(--success)' }}>{selectedEntity.risk > 80 ? 'Mismatch found' : 'Verified'}</strong>
+                  </div>
+                  <div className="info-item">
                     <span>Last Activity</span>
                     <strong>{selectedEntity.date}</strong>
                   </div>
@@ -390,6 +441,23 @@ const EntityInvestigation = ({ addToast, setComplianceLogs, selectedBank }) => {
 
               <div className="action-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Intervention Controls</div>
+                
+                <button 
+                  onClick={() => handleChainFreeze(selectedEntity.id)} 
+                  className="btn"
+                  style={{ justifyContent: 'center', background: 'var(--danger)', color: 'white', fontWeight: 'bold' }}
+                >
+                  <Lock size={16} /> INITIATE CHAIN FREEZE
+                </button>
+
+                <button 
+                  onClick={() => handleSAR(selectedEntity.id)} 
+                  className="btn"
+                  style={{ justifyContent: 'center', background: 'var(--warning)', color: 'black', fontWeight: 'bold' }}
+                >
+                  <FileKey size={16} /> FILE STR/SAR
+                </button>
+
                 <button 
                   onClick={() => handleAction(selectedEntity.id, 'safe')} 
                   className={`btn ${selectedEntity.status === 'safe' ? 'btn-active-safe' : 'btn-outline-safe'}`}
