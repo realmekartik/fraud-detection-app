@@ -62,20 +62,7 @@ export const supportedBanks = [
   { id: 'bom', name: 'Maharashtra', color: '#005A9C', logo: 'https://cdn.brandfetch.io/bankofmaharashtra.in/fallback/lettermark/theme/dark/h/256/w/256/icon?c=1bfwsmEH20zzEfSNTed' }
 ];
 
-const generateHighRiskEntities = (bankId) => {
-  const prefix = bankId ? bankId.toUpperCase() : 'SYS';
-  return [
-    { id: `TXN-${prefix}-01`, entity: 'Unusual Patterns', type: 'Business', risk: 99, activity: 'Transaction Pattern Analysis', avatar: 'TP' },
-    { id: `TXN-${prefix}-02`, entity: 'Untrusted Origin', type: 'Individual', risk: 95, activity: 'Location & Device Changes', avatar: 'LD' },
-    { id: `TXN-${prefix}-03`, entity: 'Smurfing Network', type: 'Business', risk: 92, activity: 'Unusual Money Flow', avatar: 'UM' },
-    { id: `TXN-${prefix}-04`, entity: 'Hidden Fraud Link', type: 'System Flag', risk: 89, activity: 'Machine Learning Models', avatar: 'ML' },
-    { id: `TXN-${prefix}-05`, entity: 'Limit Breachers', type: 'Corporate', risk: 85, activity: 'Rule-Based Triggers', avatar: 'RB' },
-    { id: `TXN-${prefix}-06`, entity: 'Student Wealth Acct', type: 'Individual', risk: 80, activity: 'KYC & Profile Mismatch', avatar: 'KY' },
-    { id: `TXN-${prefix}-07`, entity: 'Suspicious Sub-node', type: 'Shell Company', risk: 77, activity: 'Network Analysis', avatar: 'NA' },
-    { id: `TXN-${prefix}-08`, entity: 'Rapid Funnel Pvt', type: 'Business', risk: 73, activity: 'Velocity Checks', avatar: 'VC' },
-    { id: `TXN-${prefix}-09`, entity: 'AML Non-Compliant', type: 'Corporate', risk: 71, activity: 'Regulatory Compliance', avatar: 'RC' }
-  ];
-};
+
 
 const hiTranslations = {
   "Central Fraud Intelligence": "केंद्रीय धोखाधड़ी खुफिया",
@@ -382,13 +369,27 @@ const App = () => {
 
   // Fetch initial data & preload logos
   useEffect(() => {
-    // Generate dynamic anomalies locally instead of backend mock
-    const freshAnomalies = generateHighRiskEntities(selectedBank ? selectedBank.id : 'default');
-    setNetworkAnomalies(freshAnomalies);
-
-    if (freshAnomalies.length > 0) {
-      loadCreditProfile(freshAnomalies[0], false);
-    }
+    const fetchLiveAnomalies = async () => {
+      try {
+        const res = await fetch(`${API_URL}/anomalies`);
+        const data = await res.json();
+        
+        // Add avatar generated on frontend
+        const anomaliesWithAvatar = data.map(a => ({
+          ...a,
+          avatar: a.entity ? a.entity.substring(0,2).toUpperCase() : 'UK'
+        }));
+        
+        setNetworkAnomalies(anomaliesWithAvatar);
+        if (anomaliesWithAvatar.length > 0) {
+          loadCreditProfile(anomaliesWithAvatar[0], false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch anomalies", err);
+      }
+    };
+    
+    fetchLiveAnomalies();
 
     // Preload logos
     supportedBanks.forEach(bank => {
@@ -404,7 +405,7 @@ const App = () => {
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'telemetry_update') {
-        const { time, transactions, flagged, blocked } = message.data;
+        const { time, transactions, flagged, blocked, newAnomalies } = message.data;
 
         setCurrentTelemetry({ transactions, flagged, blocked });
 
@@ -412,6 +413,25 @@ const App = () => {
           const newData = [...prev.slice(1), { time, transactions, flagged, blocked }];
           return newData;
         });
+
+        if (newAnomalies && newAnomalies.length > 0) {
+            setNetworkAnomalies(prev => {
+                const mappedNew = newAnomalies.map(a => ({
+                    id: a.id,
+                    entity: a.fromEntity,
+                    type: a.activity,
+                    risk: a.riskScore,
+                    status: a.status,
+                    amount: a.amount,
+                    currency: a.currency,
+                    txType: a.type,
+                    bankCode: a.fromIFSC.substring(0,4),
+                    avatar: a.fromEntity ? a.fromEntity.substring(0,2).toUpperCase() : 'UK'
+                }));
+                const combined = [...mappedNew, ...prev];
+                return combined.slice(0, 50); // Keep max 50
+            });
+        }
       }
     };
 
@@ -981,10 +1001,6 @@ const App = () => {
               <FileKey size={20} />
               {t('Compliance Reports')}
             </div>
-            <div className={`nav-item ${activeTab === 'file_complaint' ? 'active' : ''}`} onClick={() => setActiveTab('file_complaint')}>
-              <AlertOctagon size={20} />
-              {t('File a Complaint')}
-            </div>
           </div>
 
           <div style={{ marginTop: 'auto', padding: '20px 0', borderTop: '1px solid var(--panel-border)' }}>
@@ -1000,15 +1016,12 @@ const App = () => {
           <div className="header">
             <div className="header-title">
               <h1 className="text-gradient">
-                {activeTab === 'fraud' ? t('Real-Time Network Intelligence') :
-                  activeTab === 'file_complaint' ? t('File a Cyber Complaint') : t('Explainable AI Assessment')}
+                {activeTab === 'fraud' ? t('Real-Time Network Intelligence') : t('Explainable AI Assessment')}
               </h1>
               <p>
                 {activeTab === 'fraud'
                   ? t('Graph-based anomaly detection across multi-layer transaction networks. Live Telemetry enabled.')
-                  : activeTab === 'file_complaint'
-                    ? t('Official gateway to register a federal cybercrime incident report immediately.')
-                    : t('Interpretable risk scoring framework combining behavioral and financial features.')}
+                  : t('Interpretable risk scoring framework combining behavioral and financial features.')}
               </p>
             </div>
 
@@ -1702,35 +1715,6 @@ const App = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total Records (Encrypted):</span> <span style={{ fontWeight: '600' }}>1.4 Million</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Retention Cycle:</span> <span style={{ fontWeight: '600' }}>7 Years</span></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Next Auto-Purge:</span> <span style={{ fontWeight: '600', color: 'var(--warning)' }}>Oct 12, 2026</span></div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : activeTab === 'file_complaint' ? (
-              <motion.div
-                key="file_complaint"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                transition={{ duration: 0.4 }}
-                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px' }}
-              >
-                <div className="glass-panel" style={{ width: '100%', maxWidth: '680px', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0', border: '1px solid rgba(0,240,255,0.2)', boxShadow: '0 0 40px rgba(0,0,0,0.4), 0 0 20px rgba(0,240,255,0.1)' }}>
-                  <div style={{ width: '100%', height: 'clamp(240px, 40vh, 360px)', overflow: 'hidden', position: 'relative', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(13, 17, 23, 0.7) 75%, rgba(13, 17, 23, 1) 100%)', zIndex: 1 }}></div>
-                    <img src="/financial_fraud_trap.png" alt="Financial Fraud Trap" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', transition: 'transform 0.5s ease' }} />
-                  </div>
-                  <div style={{ padding: '0 40px 50px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 2, marginTop: '-40px', background: 'rgba(13, 17, 23, 1)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', marginBottom: '20px', width: '100%' }}>
-                      <img src="/state_emblem.png" alt="National Emblem of India" style={{ height: '70px', filter: 'invert(1) brightness(2)' }} />
-                    </div>
-                    <h2 className="text-gradient" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 16px 0', letterSpacing: '2px', textShadow: '0 4px 20px rgba(0,240,255,0.2)' }}>FINANCIAL FRAUD</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '36px', maxWidth: '420px', fontSize: '15px', lineHeight: '1.6' }}>If you suspect unauthorized access or have detected suspicious activity, file an immediate federal report.</p>
-
-                    <a href="https://cybercrime.gov.in/Webform/Accept.aspx" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', width: '100%', maxWidth: '320px' }}>
-                      <button style={{ width: '100%', background: 'linear-gradient(135deg, #ff3b30, #ff2b5e)', color: '#ffffff', border: '1px solid rgba(255,59,48,0.5)', borderRadius: '12px', padding: '16px', fontSize: '18px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 8px 24px rgba(255,59,48,0.3)', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(255,59,48,0.5)' }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,59,48,0.3)' }}>
-                        <AlertTriangle size={20} /> Register Complaint
-                      </button>
-                    </a>
                   </div>
                 </div>
               </motion.div>
