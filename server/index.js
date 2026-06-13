@@ -3,6 +3,7 @@ const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const Database = require('better-sqlite3');
 const http = require('http');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -11,6 +12,10 @@ const wss = new WebSocketServer({ server });
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve built frontend in production
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
 
 // Initialize SQLite Database
 const db = new Database(':memory:'); // Using memory for rapid prototyping
@@ -577,6 +582,11 @@ wss.on('connection', (ws) => {
     if (redTeamTimer) clearInterval(redTeamTimer);
     console.log('Client disconnected.');
   });
+});
+
+// SPA catch-all: serve index.html for any non-API route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3001;
